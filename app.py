@@ -3159,55 +3159,62 @@ with tab3:
             fig_donut.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10))
 
             # Bottom-Left: Expected Wins per Month
-            # --- Broker Comparative Conversion (replace Expected Wins per Month) ---
-            broker_conv = summary_f.copy()
+            # Bottom-Left: Broker Scatter Plot (Volume vs. Avg. Propensity)
+            # Use the pre-computed summary_f data which already contains "volume" and "predicted_propensity_mean"
+            plot_df_scatter = summary_f.copy()
 
-            # Compute metrics per broker
-            broker_conv["submissions"] = broker_conv["volume"]
+            # Filter out brokers with 0 volume to clean up the plot (optional, but recommended for visual clarity)
+            plot_df_scatter = plot_df_scatter[plot_df_scatter["volume"] > 0].sort_values("volume", ascending=False)
 
-            # S→Q (≤7 days)
-            if "Days to Quote" in df_scored_f.columns:
-                d2q = pd.to_numeric(df_scored_f["Days to Quote"], errors="coerce")
-                df_scored_f["Quoted_SLA"] = d2q.notna() & (d2q <= 7)
-            else:
-                df_scored_f["Quoted_SLA"] = False
-
-            # Bind detection
-            df_scored_f["Bound"] = _norm_bool(df_scored_f["Bind_Flag"]) if "Bind_Flag" in df_scored_f.columns else False
-
-            # Aggregate per broker
-            broker_rates = df_scored_f.groupby("Broker Name").agg(
-                submissions=("Broker Name", "count"),
-                quotes_sla=("Quoted_SLA", "sum"),
-                binds=("Bound", "sum")
-            ).reset_index()
-
-            broker_rates["S→Q"] = broker_rates["quotes_sla"] / broker_rates["submissions"]
-            broker_rates["Q→B"] = broker_rates["binds"] / broker_rates["quotes_sla"]
-
-            # Melt for plotting
-            plot_df = broker_rates.melt(id_vars="Broker Name", value_vars=["S→Q","Q→B"],
-                                        var_name="Metric", value_name="Rate")
-
-            fig_broker_conv = px.bar(
-                plot_df,
-                x="Broker Name",
-                y="Rate",
-                color="Metric",
-                barmode="group",
-                text=plot_df["Rate"].apply(lambda x: f"{x:.0%}"),
-                color_discrete_map={"S→Q":"#FDB913", "Q→B":"#111111"}
+            # Add a text column for rich hover/text label
+            plot_df_scatter["Broker Label"] = (
+                plot_df_scatter["Broker Name"] + "<br>Volume: " + plot_df_scatter["volume"].astype(int).astype(str) + 
+                "<br>Avg. Propensity: " + (plot_df_scatter["predicted_propensity_mean"] * 100).round(1).astype(str) + "%"
             )
 
-            fig_broker_conv.update_traces(textposition="outside")
+            fig_broker_conv = go.Figure(go.Scatter(
+                x=plot_df_scatter["volume"],
+                y=plot_df_scatter["predicted_propensity_mean"],
+                mode='markers+text',
+                marker=dict(
+                    size=plot_df_scatter["volume"] / plot_df_scatter["volume"].max() * 40, # Size markers by volume
+                    sizemode='area',
+                    color=YELLOW,
+                    line=dict(width=1, color=BLACK)
+                ),
+                text=plot_df_scatter["Broker Name"], # Use Broker Name as label
+                textposition="middle right",
+                textfont=dict(color=BLACK, size=10),
+                hovertemplate=(
+                    "<b>%{text}</b><br>" + 
+                    "Volume: %{x:,}<br>" + 
+                    "Avg. Propensity: %{y:.1%}<extra></extra>"
+                ),
+                name="Brokers"
+            ))
+
+            # Calculate the overall average propensity line for comparison
+            overall_avg_propensity = avg_propensity
+
+            # Add a horizontal line for the overall average propensity
+            fig_broker_conv.add_hline(
+                y=overall_avg_propensity, 
+                line_dash="dot", line_color=RED, 
+                annotation_text=f"Overall Avg. Propensity ({overall_avg_propensity:.1%})", 
+                annotation_position="top right"
+            )
+
+
             fig_broker_conv.update_layout(
                 template="plotly_white",
-                margin=dict(l=10,r=10,t=10,b=10),
-                yaxis=dict(title="Conversion Rate", tickformat=".0%"),
-                xaxis=dict(title=None)
+                margin=dict(l=10,r=10,t=30,b=10),
+                title_text="Broker Comparison: Submission Volume vs. Avg. Bind Propensity", # Added a specific title
+                title_x=0.5,
+                xaxis=dict(title="Total Submission Volume", showgrid=True),
+                yaxis=dict(title="Avg. Predicted Bind Propensity", tickformat=".1%"),
+                showlegend=False
             )
-
-            
+                        
 
 
             # Bottom-Right: Broker bars + Predicted Wins line
@@ -3301,7 +3308,7 @@ with tab3:
 
             r2c1, r2c2 = st.columns(2, gap="large")
             with r2c1:
-                st.write("#### Broker Comparison (Submission→Quote vs Quote→Bind)")
+                st.write("#### Broker Comparison")
                 st.plotly_chart(fig_broker_conv, use_container_width=True, key="fig_broker_conv")
 
             with r2c2:
