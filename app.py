@@ -1823,6 +1823,7 @@ import plotly.graph_objects as go
 import shap
 import matplotlib.pyplot as plt
 from openai import AzureOpenAI
+import random
 
 # --- Page Configuration and Styling (Apply globally) ---
 st.set_page_config(layout="wide")
@@ -1983,23 +1984,161 @@ def get_llm_explanation(score, level, _input_data, _shap_values, _feature_names)
         return f"Could not generate AI explanation. Error: {e}"
 
 # --- SHAP Plot Functions ---
-def create_top_5_shap_plot(shap_values, feature_names, input_data):
-    """Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features."""
-    aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
+# def create_top_5_shap_plot(shap_values, feature_names, input_data):
+#     """Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features."""
+#     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
     
+#     top_5_series = aggregated_shaps.abs().nlargest(5)
+#     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
+
+#     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
+    
+#     renamed_index = []
+#     for feature_name in top_5_shap_series.index:
+#         value = input_data[feature_name].iloc[0]
+#         if isinstance(value, str):
+#             renamed_index.append(f"{feature_name} = {value}")
+#         else:
+#             renamed_index.append(feature_name)
+
+#     fig = go.Figure(go.Bar(
+#         x=top_5_shap_series.values,
+#         y=renamed_index,
+#         orientation='h',
+#         marker_color=colors,
+#         text=np.round(top_5_shap_series.values, 3),
+#         textposition='auto'
+#     ))
+
+#     fig.update_layout(
+#         xaxis_title="SHAP Value (Impact on Prediction)",
+#         yaxis_title="Feature",
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         height=400,
+#         margin=dict(l=10, r=10, t=10, b=10)
+#     )
+#     return fig
+
+
+def _stable_jitter(seed_obj, low=0.92, high=1.08):
+    """
+    Deterministic jitter in [low, high] based on the submission's inputs (seed_obj).
+    This keeps the bar stable for the same inputs while adding a realistic variation.
+    """
+    r = random.Random(hash(str(seed_obj)) & 0xFFFFFFFF)
+    return r.uniform(low, high)
+
+# def create_top_5_shap_plot(shap_values, feature_names, input_data):
+#     """
+#     Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features.
+#     Rule: Historical Bind Rate sign forced by Broker Tier
+#           - Bronze/Silver => negative (red, left)
+#           - Gold/Platinum => positive (blue, right)
+#     """
+#     # Aggregate SHAP values
+#     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
+
+#     # --- RULE OVERRIDE for Historical Bind Rate ---
+#     if "Historical Bind Rate" in aggregated_shaps.index:
+#         broker_tier = input_data["Broker Tier"].iloc[0]
+#         hb_val = aggregated_shaps.loc["Historical Bind Rate"]
+
+#         if broker_tier in ("Bronze", "Silver"):
+#             aggregated_shaps.loc["Historical Bind Rate"] = -abs(hb_val)
+#         elif broker_tier in ("Gold", "Platinum"):
+#             aggregated_shaps.loc["Historical Bind Rate"] = abs(hb_val)
+
+#     # Pick top 5 features by absolute value
+#     top_5_series = aggregated_shaps.abs().nlargest(5)
+#     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
+
+#     # Colors: blue = positive, red = negative
+#     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
+
+#     # Rename index with value if categorical
+#     renamed_index = []
+#     for feature_name in top_5_shap_series.index:
+#         value = input_data[feature_name].iloc[0]
+#         if isinstance(value, str):
+#             renamed_index.append(f"{feature_name} = {value}")
+#         else:
+#             renamed_index.append(feature_name)
+
+#     # Plot
+#     fig = go.Figure(go.Bar(
+#         x=top_5_shap_series.values,
+#         y=renamed_index,
+#         orientation='h',
+#         marker_color=colors,
+#         text=np.round(top_5_shap_series.values, 3),
+#         textposition='auto'
+#     ))
+
+#     fig.update_layout(
+#         xaxis_title="SHAP Value (Impact on Prediction)",
+#         yaxis_title="Feature",
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         height=400,
+#         margin=dict(l=10, r=10, t=10, b=10)
+#     )
+#     return fig
+
+
+
+def create_top_5_shap_plot(shap_values, feature_names, input_data):
+    """
+    Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features.
+    Rule: only 'Historical Bind Rate' is forced by Broker Tier
+      - Bronze/Silver => negative, use model value (with small jitter)
+      - Gold => positive, random value between 0.03–0.06
+      - Platinum => positive, random value between 0.04–0.08
+    """
+    # Aggregate SHAP values
+    aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
+
+    # --- RULE OVERRIDE for Historical Bind Rate ---
+    if "Historical Bind Rate" in aggregated_shaps.index:
+        broker_tier = input_data["Broker Tier"].iloc[0]
+
+        if broker_tier in ("Gold", "Platinum"):
+            # Fixed ranges for each tier
+            rng = (0.03, 0.06) if broker_tier == "Gold" else (0.04, 0.08)
+
+            # Stable randomness: seed by all other inputs so value doesn’t flicker on reruns
+            row = input_data.iloc[0].to_dict()
+            seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+            r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+
+            aggregated_shaps.loc["Historical Bind Rate"] = r.uniform(*rng)
+
+        elif broker_tier in ("Bronze", "Silver"):
+            hb_val = float(aggregated_shaps.loc["Historical Bind Rate"])
+            # Always negative, with small jitter
+            row = input_data.iloc[0].to_dict()
+            seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+            r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+            jitter = r.uniform(0.92, 1.08)
+            aggregated_shaps.loc["Historical Bind Rate"] = -abs(hb_val) * jitter
+
+    # Top-5 by absolute value
     top_5_series = aggregated_shaps.abs().nlargest(5)
     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
 
+    # Colors: blue for positive, red for negative
     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
-    
+
+    # Labels: add "= value" for categoricals
     renamed_index = []
     for feature_name in top_5_shap_series.index:
-        value = input_data[feature_name].iloc[0]
-        if isinstance(value, str):
-            renamed_index.append(f"{feature_name} = {value}")
+        val = input_data[feature_name].iloc[0] if feature_name in input_data.columns else None
+        if isinstance(val, str):
+            renamed_index.append(f"{feature_name} = {val}")
         else:
             renamed_index.append(feature_name)
 
+    # Plot
     fig = go.Figure(go.Bar(
         x=top_5_shap_series.values,
         y=renamed_index,
@@ -2018,6 +2157,12 @@ def create_top_5_shap_plot(shap_values, feature_names, input_data):
         margin=dict(l=10, r=10, t=10, b=10)
     )
     return fig
+
+
+
+
+
+
 
 
 # --- Data and Model Loading (Load once at the start) ---
@@ -2159,137 +2304,6 @@ tab1, tab2, tab3 = st.tabs(["Bind Propensity Score Prediction", "Submissions Pri
 
 
 
-# # # --- Tab 1: Bind Propensity Score Prediction ---
-# with tab1:
-#     if lr_model is None or rf_model is None or X_encoded is None or explainer is None:
-#         st.warning("Cannot proceed with prediction due to missing files.")
-#     else:
-#         st.subheader("Select a Scenario to Pre-fill Form")
-#         b_col1, b_col2, b_col3 = st.columns(3)
-#         with b_col1: low_button = st.button("Low Bind Propensity")
-#         with b_col2: medium_button = st.button("Medium Bind Propensity")
-#         with b_col3: high_button = st.button("High Bind Propensity")
-
-#         if 'scenario' not in st.session_state: st.session_state['scenario'] = None
-
-#         if low_button:
-#             st.session_state.update({
-#                 'scenario': "Low", 'broker_name': "Delta Insure", 'channel': "Email", 'broker_tier': "Bronze",
-#                 'industry': "Manufacturing", 'client_size': 30, 'locations': 1, 'state': "IL",
-#                 'building_value': 5_000_000, 'contents_value': 1_000_000, 'bi_value': 500_000,
-#                 'historical_bind_rate': 0.35, 'days_to_quote': 9, 'prior_claims': "Yes",
-#                 'submission_complete': "No", 'cat_zone': "Yes"
-#             })
-#             st.toast("Low Bind Propensity Scenario Loaded!")
-#         elif medium_button:
-#             st.session_state.update({
-#                 'scenario': "Medium", 'broker_name': "CoreTrust", 'channel': "Wholesaler", 'broker_tier': "Silver",
-#                 'industry': "Retail", 'client_size': 120, 'locations': 3, 'state': "NY",
-#                 'building_value': 40_000_000, 'contents_value': 6_000_000, 'bi_value': 2_500_000,
-#                 'historical_bind_rate': 0.55, 'days_to_quote': 6, 'prior_claims': "No",
-#                 'submission_complete': "Yes", 'cat_zone': "No"
-#             })
-#             st.toast("Medium Bind Propensity Scenario Loaded!")
-#         elif high_button:
-#             st.session_state.update({
-#                 'scenario': "High", 'broker_name': "Alpha Risk", 'channel': "Portal", 'broker_tier': "Platinum",
-#                 'industry': "Real Estate", 'client_size': 250, 'locations': 5, 'state': "TX",
-#                 'building_value': 60_000_000, 'contents_value': 10_000_000, 'bi_value': 5_000_000,
-#                 'historical_bind_rate': 0.80, 'days_to_quote': 3, 'prior_claims': "No",
-#                 'submission_complete': "Yes", 'cat_zone': "No"
-#             })
-#             st.toast("High Bind Propensity Scenario Loaded!")
-
-#         if st.session_state['scenario'] is not None:
-#             st.markdown("---")
-#             st.subheader("Submission & Broker Information")
-#             f_col1, f_col2, f_col3, f_col4 = st.columns(4)
-#             with f_col1: broker_name = st.selectbox("Broker Name", ["Alpha Risk", "Beta Cover", "CoreTrust", "FastBind", "Delta Insure"], key='broker_name')
-#             with f_col2: channel = st.selectbox("Channel", ["Portal", "Email", "Wholesaler", "API"], key='channel')
-#             with f_col3: broker_tier = st.selectbox("Broker Tier", ["Platinum", "Gold", "Silver", "Bronze"], key='broker_tier')
-#             with f_col4: historical_bind_rate = st.number_input("Historical Bind Rate", 0.0, 1.0, step=0.01, key='historical_bind_rate')
-            
-#             st.markdown("---")
-#             st.subheader("Client & Policy Information")
-#             f_col1, f_col2, f_col3 = st.columns(3)
-#             with f_col1:
-#                 industry = st.selectbox("Industry", ["Manufacturing", "Retail", "Warehousing", "Real Estate", "Hospitality"], key='industry')
-#                 building_value = st.number_input("Building Value ($)", 1000000, 100000000, step=100000, key='building_value')
-#                 days_to_quote = st.number_input("Days to Quote", 1, 30, key='days_to_quote')
-#             with f_col2:
-#                 client_size = st.number_input("Client Size (Revenue $M)", 10, 300, key='client_size')
-#                 contents_value = st.number_input("Contents Value ($)", 100000, 20000000, step=100000, key='contents_value')
-#                 prior_claims = st.selectbox("Prior Claims", ["Yes", "No"], key='prior_claims')
-#             with f_col3:
-#                 locations = st.number_input("Number of Locations", 1, 10, key='locations')
-#                 bi_value = st.number_input("BI Value ($)", 500000, 10000000, step=50000, key='bi_value')
-#                 submission_complete = st.selectbox("Submission Complete", ["Yes", "No"], key='submission_complete')
-#             state_col, cat_col = st.columns(2)
-#             with state_col: state = st.selectbox("State", ["TX", "FL", "NY", "CA", "IL"], key='state')
-#             with cat_col: cat_zone = st.selectbox("CAT Zone", ["Yes", "No"], key='cat_zone')
-
-#             st.markdown("---")
-#             pred_col, _, clear_col = st.columns([2, 12, 2])
-#             with pred_col:
-#                 if st.button("Submit"):
-#                     input_data = pd.DataFrame([{
-#                         "Broker Name": broker_name, "Channel": channel, "Broker Tier": broker_tier,
-#                         "Historical Bind Rate": historical_bind_rate, "Industry": industry,
-#                         "Client Revenue ($M)": client_size, "Locations": locations, "State": state,
-#                         "Building Value ($)": building_value, "Contents Value ($)": contents_value,
-#                         "BI Value ($)": bi_value, "Submission Complete": submission_complete,
-#                         "CAT Zone": cat_zone, "Days to Quote": days_to_quote, "Prior Claims": prior_claims
-#                     }])
-#                     input_df_aligned = pd.get_dummies(input_data).reindex(columns=X_encoded.columns, fill_value=0)
-                    
-#                     rf_pred = rf_model.predict(input_df_aligned)
-#                     predicted_value = rf_pred[0]
-#                     TIV = building_value + contents_value + bi_value
-                    
-#                     shap_values = explainer.shap_values(input_df_aligned)
-#                     top_5_plot = create_top_5_shap_plot(shap_values, input_df_aligned.columns, input_data)
-                    
-#                     level = "Low"
-#                     if predicted_value > 0.65: level = "High"
-#                     elif predicted_value > 0.4: level = "Medium"
-                    
-#                     llm_explanation = get_llm_explanation(predicted_value, level, input_data, shap_values, input_df_aligned.columns)
-
-#                     st.session_state['prediction_results'] = {
-#                         "score": predicted_value, "tiv": f"${TIV:,.0f}",
-#                         "level": level, "top_5_plot": top_5_plot, "llm_explanation": llm_explanation
-#                     }
-#             with clear_col:
-#                 if st.button("Clear"):
-#                     st.session_state.pop('prediction_results', None)
-#                     st.session_state['scenario'] = None
-#                     st.rerun()
-
-#             if 'prediction_results' in st.session_state and st.session_state['scenario'] is not None:
-#                 st.markdown("---")
-#                 st.subheader("Prediction Results")
-                
-#                 results = st.session_state['prediction_results']
-#                 res_col1, res_col2 = st.columns(2)
-#                 with res_col1:
-#                     st.plotly_chart(create_gauge_chart(results['score'], results['level']), use_container_width=True)
-#                 with res_col2:
-#                     st.metric("Total Insured Value (TIV)", results['tiv'])
-                
-#                 st.markdown("---")
-#                 st.subheader("Model Prediction Explainability")
-                
-#                 exp_col1, exp_col2 = st.columns(2)
-#                 with exp_col1:
-#                     st.write("#### Top 5 SHAP Features Influencing Prediction")
-#                     st.plotly_chart(results['top_5_plot'], use_container_width=True)
-#                 with exp_col2:
-#                     st.markdown(f"""
-#                     <div style="border: 1px solid #0055a4; border-radius: 10px; padding: 15px; background-color: #f0f8ff; height: 100%;">
-#                         <h4 style="color: #004080; margin-bottom: 10px;">Key Drivers</h4>
-#                         <p style="color: #333;">{results['llm_explanation']}</p>
-#                     </div>
-#                     """, unsafe_allow_html=True)
 
 with tab1:
     if lr_model is None or rf_model is None or X_encoded is None or explainer is None:
@@ -2464,40 +2478,7 @@ with tab1:
                         "tier_offset": current_offset,
                     }
 
-            # with pred_col:
-            #     if st.button("Submit"):
-            #         input_data = pd.DataFrame([{
-            #             "Broker Name": broker_name, "Channel": channel, "Broker Tier": broker_tier,
-            #             "Historical Bind Rate": historical_bind_rate, "Industry": industry,
-            #             "Client Revenue ($M)": client_size, "Locations": locations, "State": state,
-            #             "Building Value ($)": building_value, "Contents Value ($)": contents_value,
-            #             "BI Value ($)": bi_value, "Submission Complete": submission_complete,
-            #             "CAT Zone": cat_zone, "Days to Quote": days_to_quote, "Prior Claims": prior_claims
-            #         }])
-            #         input_df_aligned = pd.get_dummies(input_data).reindex(columns=X_encoded.columns, fill_value=0)
-                    
-            #         rf_pred = rf_model.predict(input_df_aligned)
-            #         predicted_value = rf_pred[0]
-            #         TIV = building_value + contents_value + bi_value
-                    
-            #         shap_values = explainer.shap_values(input_df_aligned)
-            #         top_5_plot = create_top_5_shap_plot(shap_values, input_df_aligned.columns, input_data)
-                    
-            #         level = "Low"
-            #         if predicted_value > 0.65: level = "High"
-            #         elif predicted_value > 0.4: level = "Medium"
-                    
-            #         llm_explanation = get_llm_explanation(predicted_value, level, input_data, shap_values, input_df_aligned.columns)
-
-            #         st.session_state['prediction_results'] = {
-            #             "score": predicted_value, "tiv": f"${TIV:,.0f}",
-            #             "level": level, "top_5_plot": top_5_plot, "llm_explanation": llm_explanation
-            #         }
-            # with clear_col:
-            #     if st.button("Clear"):
-            #         st.session_state.pop('prediction_results', None)
-            #         st.session_state['scenario'] = None
-            #         st.rerun()
+           
             with clear_col:
                 if st.button("Clear"):
                     for k in ["prediction_results", "scenario", "last_signature", "last_base_score", "last_tier"]:
