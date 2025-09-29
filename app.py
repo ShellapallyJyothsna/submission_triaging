@@ -2609,7 +2609,10 @@ with tab2:
                         .sort_values(by=["TIV_Numeric", "Bind Propensity Score"], ascending=[False, False])
                         .head(10)
                         .copy()
+                        .reset_index(drop=True)  # Reset the index
                     )
+                    top_df.index = top_df.index + 1  # Start numbering from 1 instead of 0
+
 
                     # Choose columns to display
                     display_cols = ["Submission ID", "Broker Name", "Industry",
@@ -2620,7 +2623,7 @@ with tab2:
                     rename_map = {"TIV_Numeric": "Total Insured Value ($)"}
                     top_show = top_df[display_cols].rename(columns=rename_map)
 
-                    st.write("#### Top 10 Submissions")
+                    st.write("#### Top 10 Submissions (Ranked by TIV and Bind Propensity)")
                     st.dataframe(
                         top_show.style.format({
                             "Bind Propensity Score": "{:.3f}",
@@ -2796,6 +2799,14 @@ with tab2:
 #                 st.plotly_chart(fig_brokers, use_container_width=True)
 
 
+def format_human_readable(value):
+    if value >= 1e9:
+        return f"{value/1e9:.1f} B"
+    elif value >= 1e6:
+        return f"{value/1e6:.0f} M"  # rounded to whole millions
+    else:
+        return f"{value:,.0f}"
+
 
 # --- Tab 3: Broker Performance Insights (Power BI-style, 2×2 layout) ---
 with tab3:
@@ -2840,7 +2851,10 @@ with tab3:
 
             # Calculate overall KPIs from the filtered summary
             overall_volume = int(summary_f["volume"].sum())
-            overall_predicted_wins = summary_f["predicted_expected_wins"].sum()
+            # overall_predicted_wins = summary_f["predicted_expected_wins"].sum()
+            # Compute summed TIV
+            overall_tiv = df_scored_f["TIV_Numeric"].sum() if "TIV_Numeric" in df_scored_f.columns else 0
+
             # Calculate weighted average for propensity and win rate for accuracy
             if overall_volume > 0:
                 avg_propensity = (summary_f["predicted_propensity_mean"] * summary_f["volume"]).sum() / overall_volume
@@ -2850,7 +2864,8 @@ with tab3:
 
             k1, k2, k3, k4 = st.columns(4)
             k1.metric("Total Submissions", f"{overall_volume:,}")
-            k2.metric("Predicted Wins (Expected)", f"{overall_predicted_wins:.1f}")
+            # k2.metric("Predicted Wins (Expected)", f"{overall_predicted_wins:.1f}")
+            k2.metric("Total Insured Value (TIV)", format_human_readable(overall_tiv))
             k3.metric("Avg Bind Propensity", f"{avg_propensity:.1%}")
             k4.metric("Avg Historical Win Rate", f"{avg_win_rate:.1%}" if not pd.isna(avg_win_rate) else "N/A")
             st.markdown("---")
