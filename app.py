@@ -2924,26 +2924,45 @@ with tab3:
                                       showlegend=False)
             fig_donut.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10))
 
-            # 3) Bottom-Left: Combo (Monthly Volume columns + Avg Propensity line)
-            fig_combo = go.Figure()
-            fig_combo.add_trace(go.Bar(
-                x=monthly["YYYY_MM"], y=monthly["volume"], name="Volume",
-                marker=dict(color=YELLOW),
-                hovertemplate="Month: %{x|%b %Y}<br>Volume: %{y}<extra></extra>"
+            # # 3) Bottom-Left: Combo (Monthly Volume columns + Avg Propensity line)
+            # fig_combo = go.Figure()
+            # fig_combo.add_trace(go.Bar(
+            #     x=monthly["YYYY_MM"], y=monthly["volume"], name="Volume",
+            #     marker=dict(color=YELLOW),
+            #     hovertemplate="Month: %{x|%b %Y}<br>Volume: %{y}<extra></extra>"
+            # ))
+            # fig_combo.add_trace(go.Scatter(
+            #     x=monthly["YYYY_MM"], y=monthly["avg_propensity"],
+            #     name="Avg Propensity", mode="lines+markers",
+            #     line=dict(color=RED, width=2, shape="spline"), yaxis="y2",
+            #     hovertemplate="Month: %{x|%b %Y}<br>Avg Propensity: %{y:.2f}<extra></extra>"
+            # ))
+            # fig_combo.update_layout(
+            #     template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+            #     xaxis=dict(title=None, showgrid=False),
+            #     yaxis=dict(title="Volume", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+            #     yaxis2=dict(title="Avg Propensity", overlaying="y", side="right", range=[0, 1]),
+            #     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
+            # )
+            # 3) Bottom-Left: Expected Wins per Month (New Chart)
+            monthly["expected_wins"] = monthly["volume"] * monthly["avg_propensity"]
+
+            fig_expected = go.Figure()
+            fig_expected.add_trace(go.Bar(
+                x=monthly["YYYY_MM"],
+                y=monthly["expected_wins"],
+                name="Expected Wins",
+                marker=dict(color="#FDB913"),
+                hovertemplate="Month: %{x|%b %Y}<br>Expected Wins: %{y:.1f}<extra></extra>"
             ))
-            fig_combo.add_trace(go.Scatter(
-                x=monthly["YYYY_MM"], y=monthly["avg_propensity"],
-                name="Avg Propensity", mode="lines+markers",
-                line=dict(color=RED, width=2, shape="spline"), yaxis="y2",
-                hovertemplate="Month: %{x|%b %Y}<br>Avg Propensity: %{y:.2f}<extra></extra>"
-            ))
-            fig_combo.update_layout(
-                template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+            fig_expected.update_layout(
+                template="plotly_white",
+                margin=dict(l=10, r=10, t=10, b=10),
                 xaxis=dict(title=None, showgrid=False),
-                yaxis=dict(title="Volume", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
-                yaxis2=dict(title="Avg Propensity", overlaying="y", side="right", range=[0, 1]),
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
+                yaxis=dict(title="Expected Wins", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+                showlegend=False
             )
+
 
             # 4) Bottom-Right: Broker bars (Volume) + line (Predicted Wins)
             per_broker = summary_f.sort_values("volume", ascending=False)
@@ -2969,7 +2988,7 @@ with tab3:
 
             # Uniform chart heights
             target_h = 360
-            for f in (fig_area, fig_donut, fig_combo, fig_brokers):
+            for f in (fig_area, fig_donut, fig_expected, fig_brokers):
                 f.update_layout(height=target_h)
 
             # -------- 2×2 MATRIX LAYOUT --------
@@ -2983,8 +3002,9 @@ with tab3:
 
             r2c1, r2c2 = st.columns(2, gap="large")
             with r2c1:
-                st.write("#### Monthly Volume & Avg Propensity")
-                st.plotly_chart(fig_combo, use_container_width=True)
+                st.write("#### Expected Wins per Month")
+                st.plotly_chart(fig_expected, use_container_width=True)
+
             with r2c2:
                 st.write("#### Submissions vs Predicted Wins by Broker")
                 st.plotly_chart(fig_brokers, use_container_width=True)
