@@ -1824,6 +1824,8 @@ import shap
 import matplotlib.pyplot as plt
 from openai import AzureOpenAI
 import random
+import plotly.express as px
+
 
 # --- Page Configuration and Styling (Apply globally) ---
 st.set_page_config(layout="wide")
@@ -2789,6 +2791,210 @@ def format_human_readable(value):
         return f"{value:,.0f}"
 
 
+# # --- Tab 3: Broker Performance Insights (Power BI-style, 2×2 layout) ---
+# with tab3:
+#     st.header("📊 Broker Performance Insights")
+
+#     # Load dataset with dates for this tab
+#     try:
+#         df3 = pd.read_csv("Triaging_Data_Expanded_Controlled_Variation.csv")
+#     except Exception:
+#         df3 = df_full.copy() if df_full is not None else None
+
+#     if df3 is None or X_encoded is None or rf_model is None:
+#         st.warning("Insights unavailable. Ensure the dataset and model are loaded.")
+#     else:
+#         if "submission_date" not in df3.columns:
+#             st.error("submission_date not found in the CSV. Please use the file with dates.")
+#         else:
+#             df3["submission_date"] = pd.to_datetime(df3["submission_date"], errors="coerce")
+
+#             # Compute broker summary + scored rows based on this CSV
+#             summary3, df_scored3 = compute_broker_summary(rf_model, df3, X_encoded.columns)
+
+#             # --- NEW: BROKER FILTER (from previous code) ---
+#             brokers = sorted(summary3["Broker Name"].dropna().unique().tolist())
+#             selected_brokers = st.multiselect(
+#                 "Filter Brokers",
+#                 options=brokers,
+#                 default=brokers # Default to all brokers selected
+#             )
+
+#             # --- NEW: APPLY FILTER TO DATAFRAMES ---
+#             if selected_brokers:
+#                 summary_f = summary3[summary3["Broker Name"].isin(selected_brokers)].copy()
+#                 df_scored_f = df_scored3[df_scored3["Broker Name"].isin(selected_brokers)].copy()
+#             else: # Handle case where nothing is selected by showing all data
+#                 summary_f = summary3.copy()
+#                 df_scored_f = df_scored3.copy()
+
+#             # --- NEW: KPI METRICS (from previous code, adapted for new layout) ---
+#             st.markdown("---")
+#             st.subheader("Key Performance Indicators")
+
+#             # Calculate overall KPIs from the filtered summary
+#             overall_volume = int(summary_f["volume"].sum())
+#             # overall_predicted_wins = summary_f["predicted_expected_wins"].sum()
+#             # Compute summed TIV
+#             overall_tiv = df_scored_f["TIV_Numeric"].sum() if "TIV_Numeric" in df_scored_f.columns else 0
+
+#             # Calculate weighted average for propensity and win rate for accuracy
+#             if overall_volume > 0:
+#                 avg_propensity = (summary_f["predicted_propensity_mean"] * summary_f["volume"]).sum() / overall_volume
+#                 avg_win_rate = (summary_f["win_rate"] * summary_f["volume"]).sum() / overall_volume
+#             else:
+#                 avg_propensity, avg_win_rate = 0, 0
+
+#             k1, k2, k3, k4 = st.columns(4)
+#             k1.metric("Total Submissions", f"{overall_volume:,}")
+#             # k2.metric("Predicted Wins (Expected)", f"{overall_predicted_wins:.1f}")
+#             k2.metric("Total Insured Value (TIV)", format_human_readable(overall_tiv))
+#             k3.metric("Avg Bind Propensity", f"{avg_propensity:.1%}")
+#             k4.metric("Avg Historical Win Rate", f"{avg_win_rate:.1%}" if not pd.isna(avg_win_rate) else "N/A")
+#             st.markdown("---")
+
+
+#             # Theme colors (Power BI vibe)
+#             YELLOW = "#FDB913"
+#             BLACK  = "#111111"
+#             RED    = "#C00000"
+
+#             # Monthly aggregations (NOW USES FILTERED DATA)
+#             temp = df_scored_f.dropna(subset=["submission_date"]).copy()
+#             temp["YYYY_MM"] = temp["submission_date"].dt.to_period("M").dt.to_timestamp()
+#             monthly = (
+#                 temp.groupby("YYYY_MM")
+#                     .agg(
+#                         volume=("Broker Name", "count"),
+#                         predicted_wins=("predicted_propensity", "sum"),
+#                         avg_propensity=("predicted_propensity", "mean"),
+#                     )
+#                     .reset_index()
+#             ).sort_values("YYYY_MM")
+
+#             # -------- Build Figures (all charts now respect the filter) --------
+#             # 1) Top-Left: Layered Area (Pipeline Over Time)
+#             fig_area = go.Figure()
+#             fig_area.add_trace(go.Scatter(
+#                 x=monthly["YYYY_MM"], y=monthly["volume"],
+#                 mode="lines", line=dict(width=2, color=BLACK, shape="spline"),
+#                 fill="tozeroy", name="Submissions (Volume)",
+#                 hovertemplate="Month: %{x|%b %Y}<br>Volume: %{y}<extra></extra>"
+#             ))
+#             fig_area.add_trace(go.Scatter(
+#                 x=monthly["YYYY_MM"], y=monthly["predicted_wins"],
+#                 mode="lines", line=dict(width=2, color=YELLOW, shape="spline"),
+#                 fill="tozeroy", name="Predicted Wins",
+#                 hovertemplate="Month: %{x|%b %Y}<br>Predicted Wins: %{y:.1f}<extra></extra>", opacity=0.95
+#             ))
+#             fig_area.update_layout(
+#                 template="plotly_white",
+#                 margin=dict(l=10, r=10, t=10, b=10),
+#                 xaxis=dict(title=None, showgrid=False),
+#                 yaxis=dict(title=None, showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+#                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
+#             )
+
+#             # 2) Top-Right: Donut (Broker Share by Volume)
+#             donut_df = summary_f.sort_values("volume", ascending=False).copy()
+#             fig_donut = go.Figure(go.Pie(
+#                 labels=donut_df["Broker Name"],
+#                 values=donut_df["volume"],
+#                 hole=0.55, textinfo="label+percent", insidetextorientation="radial",
+#                 hovertemplate="<b>%{label}</b><br>Volume: %{value}<extra></extra>"
+#             ))
+#             fig_donut.update_traces(marker=dict(colors=[YELLOW, BLACK, "#F5C542", "#4D4D4D", "#FFE08A", "#7A7A7A"]),
+#                                       showlegend=False)
+#             fig_donut.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10))
+
+#             # # 3) Bottom-Left: Combo (Monthly Volume columns + Avg Propensity line)
+#             # fig_combo = go.Figure()
+#             # fig_combo.add_trace(go.Bar(
+#             #     x=monthly["YYYY_MM"], y=monthly["volume"], name="Volume",
+#             #     marker=dict(color=YELLOW),
+#             #     hovertemplate="Month: %{x|%b %Y}<br>Volume: %{y}<extra></extra>"
+#             # ))
+#             # fig_combo.add_trace(go.Scatter(
+#             #     x=monthly["YYYY_MM"], y=monthly["avg_propensity"],
+#             #     name="Avg Propensity", mode="lines+markers",
+#             #     line=dict(color=RED, width=2, shape="spline"), yaxis="y2",
+#             #     hovertemplate="Month: %{x|%b %Y}<br>Avg Propensity: %{y:.2f}<extra></extra>"
+#             # ))
+#             # fig_combo.update_layout(
+#             #     template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+#             #     xaxis=dict(title=None, showgrid=False),
+#             #     yaxis=dict(title="Volume", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+#             #     yaxis2=dict(title="Avg Propensity", overlaying="y", side="right", range=[0, 1]),
+#             #     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
+#             # )
+#             # 3) Bottom-Left: Expected Wins per Month (New Chart)
+#             monthly["expected_wins"] = monthly["volume"] * monthly["avg_propensity"]
+
+#             fig_expected = go.Figure()
+#             fig_expected.add_trace(go.Bar(
+#                 x=monthly["YYYY_MM"],
+#                 y=monthly["expected_wins"],
+#                 name="Expected Wins",
+#                 marker=dict(color="#FDB913"),
+#                 hovertemplate="Month: %{x|%b %Y}<br>Expected Wins: %{y:.1f}<extra></extra>"
+#             ))
+#             fig_expected.update_layout(
+#                 template="plotly_white",
+#                 margin=dict(l=10, r=10, t=10, b=10),
+#                 xaxis=dict(title=None, showgrid=False),
+#                 yaxis=dict(title="Expected Wins", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+#                 showlegend=False
+#             )
+
+
+#             # 4) Bottom-Right: Broker bars (Volume) + line (Predicted Wins)
+#             per_broker = summary_f.sort_values("volume", ascending=False)
+#             fig_brokers = go.Figure()
+#             fig_brokers.add_trace(go.Bar(
+#                 x=per_broker["Broker Name"], y=per_broker["volume"],
+#                 name="Volume", marker=dict(color=YELLOW), opacity=0.95,
+#                 hovertemplate="Broker: %{x}<br>Volume: %{y}<extra></extra>"
+#             ))
+#             fig_brokers.add_trace(go.Scatter(
+#                 x=per_broker["Broker Name"], y=per_broker["predicted_expected_wins"],
+#                 name="Predicted Wins", mode="lines+markers",
+#                 line=dict(color=BLACK, width=2, shape="spline"), yaxis="y2",
+#                 hovertemplate="Broker: %{x}<br>Predicted Wins: %{y:.1f}<extra></extra>"
+#             ))
+#             fig_brokers.update_layout(
+#                 template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
+#                 xaxis=dict(title=None, showgrid=False),
+#                 yaxis=dict(title="Volume", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
+#                 yaxis2=dict(title="Predicted Wins", overlaying="y", side="right"),
+#                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
+#             )
+
+#             # Uniform chart heights
+#             target_h = 360
+#             for f in (fig_area, fig_donut, fig_expected, fig_brokers):
+#                 f.update_layout(height=target_h)
+
+#             # -------- 2×2 MATRIX LAYOUT --------
+#             r1c1, r1c2 = st.columns(2, gap="large")
+#             with r1c1:
+#                 st.write("#### Pipeline Over Time")
+#                 st.plotly_chart(fig_area, use_container_width=True)
+#             with r1c2:
+#                 st.write("#### Broker Share (Volume)")
+#                 st.plotly_chart(fig_donut, use_container_width=True)
+
+#             r2c1, r2c2 = st.columns(2, gap="large")
+#             with r2c1:
+#                 st.write("#### Expected Wins per Month")
+#                 st.plotly_chart(fig_expected, use_container_width=True)
+
+#             with r2c2:
+#                 st.write("#### Submissions vs Predicted Wins by Broker")
+#                 st.plotly_chart(fig_brokers, use_container_width=True)
+
+
+
+
 # --- Tab 3: Broker Performance Insights (Power BI-style, 2×2 layout) ---
 with tab3:
     st.header("📊 Broker Performance Insights")
@@ -2810,54 +3016,102 @@ with tab3:
             # Compute broker summary + scored rows based on this CSV
             summary3, df_scored3 = compute_broker_summary(rf_model, df3, X_encoded.columns)
 
-            # --- NEW: BROKER FILTER (from previous code) ---
+            # --- BROKER FILTER ---
             brokers = sorted(summary3["Broker Name"].dropna().unique().tolist())
             selected_brokers = st.multiselect(
                 "Filter Brokers",
                 options=brokers,
-                default=brokers # Default to all brokers selected
+                default=brokers
             )
 
-            # --- NEW: APPLY FILTER TO DATAFRAMES ---
+            # Apply filter
             if selected_brokers:
                 summary_f = summary3[summary3["Broker Name"].isin(selected_brokers)].copy()
                 df_scored_f = df_scored3[df_scored3["Broker Name"].isin(selected_brokers)].copy()
-            else: # Handle case where nothing is selected by showing all data
+            else:
                 summary_f = summary3.copy()
                 df_scored_f = df_scored3.copy()
 
-            # --- NEW: KPI METRICS (from previous code, adapted for new layout) ---
+            # --- KPI METRICS ---
+            # --- KPI METRICS (Submission→Quote, Quote→Bind only) ---
+            # --- KPI METRICS (S→Q with threshold, Q→B simple) ---
+            # --- KPI METRICS (S→Q with threshold, Q→B simple) ---
             st.markdown("---")
             st.subheader("Key Performance Indicators")
 
-            # Calculate overall KPIs from the filtered summary
             overall_volume = int(summary_f["volume"].sum())
-            # overall_predicted_wins = summary_f["predicted_expected_wins"].sum()
-            # Compute summed TIV
-            overall_tiv = df_scored_f["TIV_Numeric"].sum() if "TIV_Numeric" in df_scored_f.columns else 0
-
-            # Calculate weighted average for propensity and win rate for accuracy
             if overall_volume > 0:
                 avg_propensity = (summary_f["predicted_propensity_mean"] * summary_f["volume"]).sum() / overall_volume
-                avg_win_rate = (summary_f["win_rate"] * summary_f["volume"]).sum() / overall_volume
+                avg_win_rate   = (summary_f["win_rate"] * summary_f["volume"]).sum() / overall_volume
             else:
-                avg_propensity, avg_win_rate = 0, 0
+                avg_propensity, avg_win_rate = 0.0, 0.0
 
-            k1, k2, k3, k4 = st.columns(4)
-            k1.metric("Total Submissions", f"{overall_volume:,}")
-            # k2.metric("Predicted Wins (Expected)", f"{overall_predicted_wins:.1f}")
-            k2.metric("Total Insured Value (TIV)", format_human_readable(overall_tiv))
+            # Base filtered rows
+            base_df = df_scored_f.copy()
+            submissions = int(len(base_df))
+
+            def _norm_bool(series):
+                return series.astype(str).str.strip().str.lower().isin(["1","true","yes","y"])
+
+            # --- Submission → Quote (fixed threshold ≤ 7 days) ---
+            quote_threshold = 7
+            if "Days to Quote" in base_df.columns:
+                d2q = pd.to_numeric(base_df["Days to Quote"], errors="coerce")
+                quoted_mask_sla = d2q.notna() & (d2q <= quote_threshold)
+            else:
+                quoted_mask_sla = pd.Series([False]*submissions, index=base_df.index)
+
+            # --- Quote → Bind (simple: all non-null Days to Quote count as quotes) ---
+            if "Days to Quote" in base_df.columns:
+                quoted_mask_all = pd.to_numeric(base_df["Days to Quote"], errors="coerce").notna()
+            else:
+                quoted_mask_all = pd.Series([False]*submissions, index=base_df.index)
+
+            # Detect binds
+            if "Bind_Flag" in base_df.columns:
+                bind_mask = _norm_bool(base_df["Bind_Flag"])
+            else:
+                bind_mask = pd.Series([False]*submissions, index=base_df.index)
+
+            # Counts
+            quotes_sla = int(quoted_mask_sla.sum())      # For S→Q
+            quotes_all = int(quoted_mask_all.sum())      # For Q→B
+            binds      = int(bind_mask.sum())
+
+            def _safe_rate(n, d):
+                return (n / d) if (d and d > 0) else None
+
+            s_to_q = _safe_rate(quotes_sla, submissions)   # S→Q (≤7 days)
+            q_to_b = _safe_rate(binds, quotes_all)         # Q→B (simple, all quotes)
+
+            # --- NEW: Predicted Wins (Expected) ---
+            if "predicted_propensity" in base_df.columns:
+                predicted_expected_wins = float(base_df["predicted_propensity"].sum())
+            else:
+                predicted_expected_wins = None
+
+            # --- Display ---
+            # Row 1 (now 4 KPIs including Predicted Wins)
+            k1, k2, k3 = st.columns(3)
+            k1.metric("Total Submissions", f"{submissions:,}")
+            k2.metric("Predicted Wins (Expected)", f"{predicted_expected_wins:.1f}" if predicted_expected_wins is not None else "N/A")
             k3.metric("Avg Bind Propensity", f"{avg_propensity:.1%}")
-            k4.metric("Avg Historical Win Rate", f"{avg_win_rate:.1%}" if not pd.isna(avg_win_rate) else "N/A")
+            
+
+            # Row 2 (conversion KPIs)
+            r1, r2,r3 = st.columns(3)
+            r1.metric("Submission → Quote", f"{s_to_q:.1%}" if s_to_q is not None else "N/A")
+            r2.metric("Quote → Bind", f"{q_to_b:.1%}" if q_to_b is not None else "N/A")
+            r3.metric("Avg Historical Win Rate", f"{avg_win_rate:.1%}" if pd.notna(avg_win_rate) else "N/A")
+
             st.markdown("---")
 
 
-            # Theme colors (Power BI vibe)
+            # -------- Charts (unchanged except filtered data) --------
             YELLOW = "#FDB913"
             BLACK  = "#111111"
             RED    = "#C00000"
 
-            # Monthly aggregations (NOW USES FILTERED DATA)
             temp = df_scored_f.dropna(subset=["submission_date"]).copy()
             temp["YYYY_MM"] = temp["submission_date"].dt.to_period("M").dt.to_timestamp()
             monthly = (
@@ -2870,8 +3124,7 @@ with tab3:
                     .reset_index()
             ).sort_values("YYYY_MM")
 
-            # -------- Build Figures (all charts now respect the filter) --------
-            # 1) Top-Left: Layered Area (Pipeline Over Time)
+            # Top-Left: Area
             fig_area = go.Figure()
             fig_area.add_trace(go.Scatter(
                 x=monthly["YYYY_MM"], y=monthly["volume"],
@@ -2893,7 +3146,7 @@ with tab3:
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
             )
 
-            # 2) Top-Right: Donut (Broker Share by Volume)
+            # Top-Right: Donut
             donut_df = summary_f.sort_values("volume", ascending=False).copy()
             fig_donut = go.Figure(go.Pie(
                 labels=donut_df["Broker Name"],
@@ -2902,50 +3155,62 @@ with tab3:
                 hovertemplate="<b>%{label}</b><br>Volume: %{value}<extra></extra>"
             ))
             fig_donut.update_traces(marker=dict(colors=[YELLOW, BLACK, "#F5C542", "#4D4D4D", "#FFE08A", "#7A7A7A"]),
-                                      showlegend=False)
+                                    showlegend=False)
             fig_donut.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=10, b=10))
 
-            # # 3) Bottom-Left: Combo (Monthly Volume columns + Avg Propensity line)
-            # fig_combo = go.Figure()
-            # fig_combo.add_trace(go.Bar(
-            #     x=monthly["YYYY_MM"], y=monthly["volume"], name="Volume",
-            #     marker=dict(color=YELLOW),
-            #     hovertemplate="Month: %{x|%b %Y}<br>Volume: %{y}<extra></extra>"
-            # ))
-            # fig_combo.add_trace(go.Scatter(
-            #     x=monthly["YYYY_MM"], y=monthly["avg_propensity"],
-            #     name="Avg Propensity", mode="lines+markers",
-            #     line=dict(color=RED, width=2, shape="spline"), yaxis="y2",
-            #     hovertemplate="Month: %{x|%b %Y}<br>Avg Propensity: %{y:.2f}<extra></extra>"
-            # ))
-            # fig_combo.update_layout(
-            #     template="plotly_white", margin=dict(l=10, r=10, t=10, b=10),
-            #     xaxis=dict(title=None, showgrid=False),
-            #     yaxis=dict(title="Volume", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
-            #     yaxis2=dict(title="Avg Propensity", overlaying="y", side="right", range=[0, 1]),
-            #     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
-            # )
-            # 3) Bottom-Left: Expected Wins per Month (New Chart)
-            monthly["expected_wins"] = monthly["volume"] * monthly["avg_propensity"]
+            # Bottom-Left: Expected Wins per Month
+            # --- Broker Comparative Conversion (replace Expected Wins per Month) ---
+            broker_conv = summary_f.copy()
 
-            fig_expected = go.Figure()
-            fig_expected.add_trace(go.Bar(
-                x=monthly["YYYY_MM"],
-                y=monthly["expected_wins"],
-                name="Expected Wins",
-                marker=dict(color="#FDB913"),
-                hovertemplate="Month: %{x|%b %Y}<br>Expected Wins: %{y:.1f}<extra></extra>"
-            ))
-            fig_expected.update_layout(
-                template="plotly_white",
-                margin=dict(l=10, r=10, t=10, b=10),
-                xaxis=dict(title=None, showgrid=False),
-                yaxis=dict(title="Expected Wins", showgrid=True, gridcolor="rgba(0,0,0,0.06)"),
-                showlegend=False
+            # Compute metrics per broker
+            broker_conv["submissions"] = broker_conv["volume"]
+
+            # S→Q (≤7 days)
+            if "Days to Quote" in df_scored_f.columns:
+                d2q = pd.to_numeric(df_scored_f["Days to Quote"], errors="coerce")
+                df_scored_f["Quoted_SLA"] = d2q.notna() & (d2q <= 7)
+            else:
+                df_scored_f["Quoted_SLA"] = False
+
+            # Bind detection
+            df_scored_f["Bound"] = _norm_bool(df_scored_f["Bind_Flag"]) if "Bind_Flag" in df_scored_f.columns else False
+
+            # Aggregate per broker
+            broker_rates = df_scored_f.groupby("Broker Name").agg(
+                submissions=("Broker Name", "count"),
+                quotes_sla=("Quoted_SLA", "sum"),
+                binds=("Bound", "sum")
+            ).reset_index()
+
+            broker_rates["S→Q"] = broker_rates["quotes_sla"] / broker_rates["submissions"]
+            broker_rates["Q→B"] = broker_rates["binds"] / broker_rates["quotes_sla"]
+
+            # Melt for plotting
+            plot_df = broker_rates.melt(id_vars="Broker Name", value_vars=["S→Q","Q→B"],
+                                        var_name="Metric", value_name="Rate")
+
+            fig_broker_conv = px.bar(
+                plot_df,
+                x="Broker Name",
+                y="Rate",
+                color="Metric",
+                barmode="group",
+                text=plot_df["Rate"].apply(lambda x: f"{x:.0%}"),
+                color_discrete_map={"S→Q":"#FDB913", "Q→B":"#111111"}
             )
 
+            fig_broker_conv.update_traces(textposition="outside")
+            fig_broker_conv.update_layout(
+                template="plotly_white",
+                margin=dict(l=10,r=10,t=10,b=10),
+                yaxis=dict(title="Conversion Rate", tickformat=".0%"),
+                xaxis=dict(title=None)
+            )
 
-            # 4) Bottom-Right: Broker bars (Volume) + line (Predicted Wins)
+            
+
+
+            # Bottom-Right: Broker bars + Predicted Wins line
             per_broker = summary_f.sort_values("volume", ascending=False)
             fig_brokers = go.Figure()
             fig_brokers.add_trace(go.Bar(
@@ -2966,30 +3231,86 @@ with tab3:
                 yaxis2=dict(title="Predicted Wins", overlaying="y", side="right"),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0)
             )
+            
 
+            # --- Predicted Wins (Expected) by Broker (new row) ---
+            if "predicted_propensity" in df_scored_f.columns:
+                broker_expected = (
+                    df_scored_f.groupby("Broker Name", dropna=False)["predicted_propensity"]
+                    .sum()
+                    .reset_index()
+                    .rename(columns={"predicted_propensity": "predicted_wins"})
+                    .sort_values("predicted_wins", ascending=True)  # ascending for nicer horizontal bar
+                )
+
+                fig_predwins = go.Figure(go.Bar(
+                    x=broker_expected["predicted_wins"],
+                    y=broker_expected["Broker Name"],
+                    orientation="h",
+                    marker=dict(color="#FDB913"),
+                    text=[f"{v:.1f}" for v in broker_expected["predicted_wins"]],
+                    textposition="outside",
+                    hovertemplate="Broker: %{y}<br>Predicted Wins: %{x:.1f}<extra></extra>"
+                ))
+
+                fig_predwins.update_layout(
+                    template="plotly_white",
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    xaxis=dict(title="Predicted Wins (Expected)"),
+                    yaxis=dict(title=None, automargin=True),
+                    height=420
+                )
+
+                # New full-width row under the 2×2
+                # st.write("#### Predicted Wins (Expected) by Broker")
+                # st.plotly_chart(fig_predwins, use_container_width=True)
+            else:
+                st.info("Column `predicted_propensity` not found; cannot compute Predicted Wins per Broker.")
             # Uniform chart heights
-            target_h = 360
-            for f in (fig_area, fig_donut, fig_expected, fig_brokers):
-                f.update_layout(height=target_h)
+            for f in (fig_area, fig_donut, fig_broker_conv, fig_brokers):
+                f.update_layout(height=360)
 
+            # -------- 2×2 MATRIX LAYOUT --------
+            # r1c1, r1c2 = st.columns(2, gap="large")
+            # with r1c1:
+            #     st.write("#### Pipeline Over Time")
+            #     st.plotly_chart(fig_area, use_container_width=True)
+            # with r1c2:
+            #     st.write("#### Broker Share (Volume)")
+            #     st.plotly_chart(fig_donut, use_container_width=True)
+
+            # r2c1, r2c2 = st.columns(2, gap="large")
+            # with r2c1:
+            #     st.write("#### Broker Comparison (Submission→Quote vs Quote→Bind)")
+            #     st.plotly_chart(fig_broker_conv, use_container_width=True)
+
+            # with r2c2:
+            #     st.write("#### Submissions vs Predicted Wins by Broker")
+            #     st.plotly_chart(fig_brokers, use_container_width=True)
+            # --- 2×2 + 1 MATRIX LAYOUT (5 charts total) ---
+            # --- 2×2 + 1 MATRIX LAYOUT (5 charts total) ---
             # -------- 2×2 MATRIX LAYOUT --------
             r1c1, r1c2 = st.columns(2, gap="large")
             with r1c1:
                 st.write("#### Pipeline Over Time")
-                st.plotly_chart(fig_area, use_container_width=True)
+                st.plotly_chart(fig_area, use_container_width=True, key="fig_area")
+
             with r1c2:
                 st.write("#### Broker Share (Volume)")
-                st.plotly_chart(fig_donut, use_container_width=True)
+                st.plotly_chart(fig_donut, use_container_width=True, key="fig_donut")
 
             r2c1, r2c2 = st.columns(2, gap="large")
             with r2c1:
-                st.write("#### Expected Wins per Month")
-                st.plotly_chart(fig_expected, use_container_width=True)
+                st.write("#### Broker Comparison (Submission→Quote vs Quote→Bind)")
+                st.plotly_chart(fig_broker_conv, use_container_width=True, key="fig_broker_conv")
 
             with r2c2:
                 st.write("#### Submissions vs Predicted Wins by Broker")
-                st.plotly_chart(fig_brokers, use_container_width=True)
+                st.plotly_chart(fig_brokers, use_container_width=True, key="fig_brokers")
 
+            # # -------- 5th Chart (Full Width Row) --------
+            # st.write("#### Predicted Wins (Expected) by Broker")
+            # st.plotly_chart(fig_predwins, use_container_width=True, key="fig_expected_broker")
 
 
 
