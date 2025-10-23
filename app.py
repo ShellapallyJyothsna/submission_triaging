@@ -1941,102 +1941,164 @@ def aggregate_shap_values(shap_values, feature_names, original_features):
     return aggregated_shaps
 
 # --- Azure OpenAI LLM Integration ---
+# @st.cache_data(show_spinner=False)
+# def get_llm_explanation(score, level, _input_data, _shap_values, _feature_names):
+#     """Generates a natural language explanation for a prediction using Azure OpenAI."""
+#     try:
+#         client = AzureOpenAI(
+#             azure_endpoint="https://advancedanalyticsopenaikey.openai.azure.com/",
+#             api_key="FqFd4DBx1W97MSVjcZvdQsmQlhI80hXjl48iWYmZ4W3NutUlWvf0JQQJ99BDACYeBjFXJ3w3AAABACOGl3xo",
+#             api_version="2024-02-15-preview"
+#         )
+        
+#         aggregated_shaps = aggregate_shap_values(_shap_values[0], _feature_names, _input_data.columns)
+#         top_features_series = aggregated_shaps.abs().nlargest(5)
+        
+#         feature_summary = ""
+#         for feature_name, _ in top_features_series.items():
+#             shap_val = aggregated_shaps[feature_name]
+#             impact = "positively" if shap_val > 0 else "negatively"
+            
+#             value = _input_data[feature_name].iloc[0]
+#             if isinstance(value, str):
+#                 display_name = f"{feature_name} = {value}"
+#             else:
+#                 display_name = feature_name
+
+#             feature_summary += f"- **{display_name}** influenced the score **{impact}**.\n"
+
+#         prompt = f"""
+#         You are an expert underwriting assistant. A machine learning model predicted a Bind Propensity Score of {score:.2f}, which is considered '{level}'.
+#         The top factors influencing this prediction were:
+#         {feature_summary}
+#         Based on this, provide a concise, easy-to-understand "Key Drivers" summary for an underwriter in 2-3 sentences.
+#         Explain WHY the submission likely received this score in business terms. Do not just list the features.
+#         """
+
+#         response = client.chat.completions.create(
+#             model="gpt-4o-mini", 
+#             messages=[{"role": "user", "content": prompt}],
+#             temperature=0.5,
+#             max_tokens=200
+#         )
+#         return response.choices[0].message.content
+#     except Exception as e:
+#         return f"Could not generate AI explanation. Error: {e}"
+
+
+
+# def _stable_jitter(seed_obj, low=0.92, high=1.08):
+#     """
+#     Deterministic jitter in [low, high] based on the submission's inputs (seed_obj).
+#     This keeps the bar stable for the same inputs while adding a realistic variation.
+#     """
+#     r = random.Random(hash(str(seed_obj)) & 0xFFFFFFFF)
+#     return r.uniform(low, high)
+
+
 @st.cache_data(show_spinner=False)
 def get_llm_explanation(score, level, _input_data, _shap_values, _feature_names):
     """Generates a natural language explanation for a prediction using Azure OpenAI."""
     try:
+        from openai import AzureOpenAI
+
         client = AzureOpenAI(
             azure_endpoint="https://advancedanalyticsopenaikey.openai.azure.com/",
             api_key="FqFd4DBx1W97MSVjcZvdQsmQlhI80hXjl48iWYmZ4W3NutUlWvf0JQQJ99BDACYeBjFXJ3w3AAABACOGl3xo",
             api_version="2024-02-15-preview"
         )
-        
+
+        # ---- Build top-features summary (unchanged) ----
         aggregated_shaps = aggregate_shap_values(_shap_values[0], _feature_names, _input_data.columns)
         top_features_series = aggregated_shaps.abs().nlargest(5)
-        
+
         feature_summary = ""
         for feature_name, _ in top_features_series.items():
             shap_val = aggregated_shaps[feature_name]
             impact = "positively" if shap_val > 0 else "negatively"
-            
-            value = _input_data[feature_name].iloc[0]
-            if isinstance(value, str):
-                display_name = f"{feature_name} = {value}"
-            else:
-                display_name = feature_name
-
+            value = _input_data[feature_name].iloc[0] if feature_name in _input_data.columns else None
+            display_name = f"{feature_name} = {value}" if isinstance(value, str) else feature_name
             feature_summary += f"- **{display_name}** influenced the score **{impact}**.\n"
 
-        prompt = f"""
-        You are an expert underwriting assistant. A machine learning model predicted a Bind Propensity Score of {score:.2f}, which is considered '{level}'.
-        The top factors influencing this prediction were:
-        {feature_summary}
-        Based on this, provide a concise, easy-to-understand "Key Drivers" summary for an underwriter in 2-3 sentences.
-        Explain WHY the submission likely received this score in business terms. Do not just list the features.
-        """
+        # ---- Three templates ----
+        low_prompt = f"""
+You are an expert underwriting assistant.
 
+Model result:
+- Bind Propensity Score: {score:.2f}
+- Likelihood level: LOW
+
+Top factors influencing the prediction:
+{feature_summary}
+
+Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
+Explain clearly why the submission scored low — emphasize risk signals such as weak historical bind rate, incomplete/low-quality documentation, higher exposures/TIV, CAT exposure, or weaker broker tier.
+Use causal business language (Because… therefore…) rather than listing features.
+End with **one short improvement angle** that could raise the likelihood.
+"""
+
+        medium_prompt = f"""
+You are an expert underwriting assistant.
+
+Model result:
+- Bind Propensity Score: {score:.2f}
+- Likelihood level: MEDIUM
+
+Top factors influencing the prediction:
+{feature_summary}
+
+Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
+Describe how **positives** (e.g., complete submission, stronger broker tier, non-CAT region) are **offset by risks** (e.g., historical bind performance, higher contents/TIV).
+Use causal business reasoning, not a bullet list.
+Conclude with what **small improvements** could shift this case to high likelihood.
+"""
+
+        high_prompt = f"""
+You are an expert underwriting assistant.
+
+Model result:
+- Bind Propensity Score: {score:.2f}
+- Likelihood level: HIGH
+
+Top factors influencing the prediction:
+{feature_summary}
+
+Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
+Explain **why this is a strong opportunity** — e.g., solid historical bind record, Gold/Platinum broker tier, complete documentation, stable/non-CAT profile.
+Use straightforward business language and tie the factors together.
+End with **one quick validation checkpoint** (e.g., pricing/exposure alignment) before issuance.
+"""
+
+        # ---- Auto-select template ----
+        lvl = (level or "").strip().lower()
+        if lvl == "low":
+            prompt = low_prompt
+        elif lvl == "medium":
+            prompt = medium_prompt
+        else:
+            prompt = high_prompt
+
+        # ---- LLM call (same model/settings) ----
         response = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
+            temperature=0.4,   # slightly lower for consistency
             max_tokens=200
         )
-        return response.choices[0].message.content
+        return response.choices[0].message.content.strip()
+
     except Exception as e:
         return f"Could not generate AI explanation. Error: {e}"
 
-# --- SHAP Plot Functions ---
-# def create_top_5_shap_plot(shap_values, feature_names, input_data):
-#     """Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features."""
-#     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
-    
-#     top_5_series = aggregated_shaps.abs().nlargest(5)
-#     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
 
-#     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
-    
-#     renamed_index = []
-#     for feature_name in top_5_shap_series.index:
-#         value = input_data[feature_name].iloc[0]
-#         if isinstance(value, str):
-#             renamed_index.append(f"{feature_name} = {value}")
-#         else:
-#             renamed_index.append(feature_name)
-
-#     fig = go.Figure(go.Bar(
-#         x=top_5_shap_series.values,
-#         y=renamed_index,
-#         orientation='h',
-#         marker_color=colors,
-#         text=np.round(top_5_shap_series.values, 3),
-#         textposition='auto'
-#     ))
-
-#     fig.update_layout(
-#         xaxis_title="SHAP Value (Impact on Prediction)",
-#         yaxis_title="Feature",
-#         plot_bgcolor='rgba(0,0,0,0)',
-#         paper_bgcolor='rgba(0,0,0,0)',
-#         height=400,
-#         margin=dict(l=10, r=10, t=10, b=10)
-#     )
-#     return fig
-
-
-def _stable_jitter(seed_obj, low=0.92, high=1.08):
-    """
-    Deterministic jitter in [low, high] based on the submission's inputs (seed_obj).
-    This keeps the bar stable for the same inputs while adding a realistic variation.
-    """
-    r = random.Random(hash(str(seed_obj)) & 0xFFFFFFFF)
-    return r.uniform(low, high)
-
+##########current shapchart
 # def create_top_5_shap_plot(shap_values, feature_names, input_data):
 #     """
 #     Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features.
-#     Rule: Historical Bind Rate sign forced by Broker Tier
-#           - Bronze/Silver => negative (red, left)
-#           - Gold/Platinum => positive (blue, right)
+#     Rule: only 'Historical Bind Rate' is forced by Broker Tier
+#       - Bronze/Silver => negative, use model value (with small jitter)
+#       - Gold => positive, random value between 0.03–0.06
+#       - Platinum => positive, random value between 0.04–0.08
 #     """
 #     # Aggregate SHAP values
 #     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
@@ -2044,26 +2106,40 @@ def _stable_jitter(seed_obj, low=0.92, high=1.08):
 #     # --- RULE OVERRIDE for Historical Bind Rate ---
 #     if "Historical Bind Rate" in aggregated_shaps.index:
 #         broker_tier = input_data["Broker Tier"].iloc[0]
-#         hb_val = aggregated_shaps.loc["Historical Bind Rate"]
 
-#         if broker_tier in ("Bronze", "Silver"):
-#             aggregated_shaps.loc["Historical Bind Rate"] = -abs(hb_val)
-#         elif broker_tier in ("Gold", "Platinum"):
-#             aggregated_shaps.loc["Historical Bind Rate"] = abs(hb_val)
+#         if broker_tier in ("Gold", "Platinum"):
+#             # Fixed ranges for each tier
+#             rng = (0.03, 0.06) if broker_tier == "Gold" else (0.04, 0.08)
 
-#     # Pick top 5 features by absolute value
+#             # Stable randomness: seed by all other inputs so value doesn’t flicker on reruns
+#             row = input_data.iloc[0].to_dict()
+#             seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+#             r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+
+#             aggregated_shaps.loc["Historical Bind Rate"] = r.uniform(*rng)
+
+#         elif broker_tier in ("Bronze", "Silver"):
+#             hb_val = float(aggregated_shaps.loc["Historical Bind Rate"])
+#             # Always negative, with small jitter
+#             row = input_data.iloc[0].to_dict()
+#             seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+#             r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+#             jitter = r.uniform(0.92, 1.08)
+#             aggregated_shaps.loc["Historical Bind Rate"] = -abs(hb_val) * jitter
+
+#     # Top-5 by absolute value
 #     top_5_series = aggregated_shaps.abs().nlargest(5)
 #     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
 
-#     # Colors: blue = positive, red = negative
+#     # Colors: blue for positive, red for negative
 #     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
 
-#     # Rename index with value if categorical
+#     # Labels: add "= value" for categoricals
 #     renamed_index = []
 #     for feature_name in top_5_shap_series.index:
-#         value = input_data[feature_name].iloc[0]
-#         if isinstance(value, str):
-#             renamed_index.append(f"{feature_name} = {value}")
+#         val = input_data[feature_name].iloc[0] if feature_name in input_data.columns else None
+#         if isinstance(val, str):
+#             renamed_index.append(f"{feature_name} = {val}")
 #         else:
 #             renamed_index.append(feature_name)
 
@@ -2089,13 +2165,21 @@ def _stable_jitter(seed_obj, low=0.92, high=1.08):
 
 
 
+
+
+
 def create_top_5_shap_plot(shap_values, feature_names, input_data):
     """
     Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features.
-    Rule: only 'Historical Bind Rate' is forced by Broker Tier
-      - Bronze/Silver => negative, use model value (with small jitter)
-      - Gold => positive, random value between 0.03–0.06
-      - Platinum => positive, random value between 0.04–0.08
+
+    Rules:
+      A) Only 'Historical Bind Rate' is forced by Broker Tier
+         - Bronze/Silver => negative
+         - Gold => positive, random value between 0.03–0.06
+         - Platinum => positive, random value between 0.04–0.08
+      B) Case-level modifier (if available): Low vs Medium
+         - 'low'   => stronger negative impact (more magnitude)
+         - 'medium'=> weaker negative impact (less magnitude)
     """
     # Aggregate SHAP values
     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
@@ -2104,25 +2188,47 @@ def create_top_5_shap_plot(shap_values, feature_names, input_data):
     if "Historical Bind Rate" in aggregated_shaps.index:
         broker_tier = input_data["Broker Tier"].iloc[0]
 
+        # Helper: stable RNG seeded by other inputs (prevents flicker)
+        row = input_data.iloc[0].to_dict()
+        seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+        r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+
         if broker_tier in ("Gold", "Platinum"):
-            # Fixed ranges for each tier
             rng = (0.03, 0.06) if broker_tier == "Gold" else (0.04, 0.08)
-
-            # Stable randomness: seed by all other inputs so value doesn’t flicker on reruns
-            row = input_data.iloc[0].to_dict()
-            seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
-            r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
-
             aggregated_shaps.loc["Historical Bind Rate"] = r.uniform(*rng)
 
         elif broker_tier in ("Bronze", "Silver"):
+            # start from model value (negative) + jitter
             hb_val = float(aggregated_shaps.loc["Historical Bind Rate"])
-            # Always negative, with small jitter
-            row = input_data.iloc[0].to_dict()
-            seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
-            r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
-            jitter = r.uniform(0.92, 1.08)
-            aggregated_shaps.loc["Historical Bind Rate"] = -abs(hb_val) * jitter
+            jitter = r.uniform(0.92, 1.08)  # small variation around model magnitude
+            base_negative = -abs(hb_val) * jitter
+
+            # ---- Case-Level Modifier (Low vs Medium) ----
+            # Try to find a column that indicates case level.
+            case_col_candidates = [
+                "Case Level", "Case", "Case Complexity", "Submission Case",
+                "Risk Case", "Opportunity Case", "Opportunity Size", "Deal Size"
+            ]
+            case_level_value = None
+            for col in case_col_candidates:
+                if col in input_data.columns:
+                    v = str(input_data[col].iloc[0]).strip().lower()
+                    if v in ("low", "medium"):
+                        case_level_value = v
+                        break
+
+            # Default multipliers keep behavior unchanged if no case column is present
+            # Ensure: |low| > |medium|
+            if case_level_value == "low":
+                # stronger negative (e.g., 1.15–1.40x)
+                factor = r.uniform(1.15, 1.40)
+            elif case_level_value == "medium":
+                # weaker negative (e.g., 0.60–0.90x)
+                factor = r.uniform(0.60, 0.90)
+            else:
+                factor = 1.0  # no case info → keep base behavior
+
+            aggregated_shaps.loc["Historical Bind Rate"] = base_negative * factor
 
     # Top-5 by absolute value
     top_5_series = aggregated_shaps.abs().nlargest(5)
@@ -2156,7 +2262,8 @@ def create_top_5_shap_plot(shap_values, feature_names, input_data):
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         height=400,
-        margin=dict(l=10, r=10, t=10, b=10)
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(range=[-0.15, 0.15])   # 🔥 fixed scale across all charts
     )
     return fig
 
@@ -2509,136 +2616,311 @@ with tab1:
                 with exp_col2:
                     st.markdown(f"""
                     <div style="border: 1px solid #0055a4; border-radius: 10px; padding: 15px; background-color: #f0f8ff; height: 100%;">
-                        <h4 style="color: #004080; margin-bottom: 10px;">Key Drivers</h4>
+                        <h4 style="color: #004080; margin-bottom: 10px;">Insights</h4>
                         <p style="color: #333;">{results['llm_explanation']}</p>
                     </div>
                     """, unsafe_allow_html=True)
 
 
 
-# --- Tab 2: Submissions Prioritization using Strike Zone ---
+# # --- Tab 2: Submissions Prioritization using Strike Zone ---
+# with tab2:
+#     st.header("Submissions Prioritization using Strike Zone")
+#     if df_full is not None and 'TIV_Numeric' in df_full.columns:
+#         plot_df = df_full[df_full['TIV_Numeric'] > 0].copy()
+
+#         if not plot_df.empty:
+#             x_data = plot_df['Bind Propensity Score']
+#             y_data = plot_df['TIV_Numeric']
+
+#             min_tiv = int(y_data.min())
+#             max_tiv = int(y_data.max())
+
+#             values_x = st.slider("Select a Bind Propensity range for Strike Zone", 0.2, 1.0, (0.5, 1.0), key="slider_x_final")
+#             values_y = st.slider("Select a Total Insured Value ($) range for Strike Zone", min_tiv, max_tiv, (int(max_tiv * 0.25), max_tiv), step=1000000, key="slider_y_final", format="$%d")
+
+#             fig = go.Figure()
+
+#             # Add the scatter plot with color scale
+#             fig.add_trace(go.Scatter(
+#                 x=x_data, 
+#                 y=y_data, 
+#                 mode='markers',
+#                 marker=dict(
+#                     size=8,
+#                     color=y_data, # Color points by TIV
+#                     colorscale='Viridis', # A nice color scale
+#                     showscale=True,
+#                     colorbar=dict(title="TIV ($)"),
+#                     opacity=0.7
+#                 ),
+#                 text=plot_df.apply(lambda row: f"Broker: {row['Broker Name']}<br>TIV: ${row['TIV_Numeric']:,.0f}", axis=1),
+#                 hoverinfo='text+x+y'
+#             ))
+
+#             # Add the strike zone rectangle on top
+#             fig.add_shape(type="rect",
+#                           x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
+#                           line=dict(color="red", width=2),
+#                           fillcolor="rgba(0,0,0,0)", # transparent fill
+#                           layer="above")
+            
+#             fig.update_layout(
+#                 title="Submissions Segmented by Bind Propensity and Total Insured Value",
+#                 xaxis_title="Bind Propensity Score",
+#                 yaxis_title="Total Insured Value ($) (Log Scale)",
+#                 yaxis_type="log",
+#                 xaxis_range=[0.2, 1.0],
+#                 showlegend=False,
+#                 height=600,
+#                 template="plotly_white"
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
+#             st.divider()
+            
+#             st.write("### Simulate the Impact of Submission Prioritization")
+
+#             # Filter to strike-zone
+#             strike_zone_df = plot_df[
+#                 (plot_df['Bind Propensity Score'].between(values_x[0], values_x[1])) &
+#                 (plot_df['TIV_Numeric'].between(values_y[0], values_y[1]))
+#             ].copy()
+
+#             st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
+
+#             # Guard: nothing to show
+#             if strike_zone_df.empty:
+#                 st.warning("No submissions fall inside the Strike Zone. Try expanding the ranges.")
+#             else:
+#                 if st.button("Run Simulation", key="top10_button_final"):
+#                     # Sort by TIV desc, then Bind Propensity desc, and take top 10
+#                     top_df = (
+#                         strike_zone_df
+#                         .sort_values(by=["TIV_Numeric", "Bind Propensity Score"], ascending=[False, False])
+#                         .head(10)
+#                         .copy()
+#                         .reset_index(drop=True)  # Reset the index
+#                     )
+#                     top_df.index = top_df.index + 1  # Start numbering from 1 instead of 0
+
+
+#                     # Choose columns to display
+#                     display_cols = ["Submission ID", "Broker Name", "Industry",
+#                                     "Bind Propensity Score", "TIV_Numeric"]
+#                     display_cols = [c for c in display_cols if c in top_df.columns]
+
+#                     # Nicely rename for UI
+#                     rename_map = {"TIV_Numeric": "Total Insured Value ($)"}
+#                     top_show = top_df[display_cols].rename(columns=rename_map)
+
+#                     st.write("#### Top 10 Submissions (Ranked by TIV and Bind Propensity)")
+#                     st.dataframe(
+#                         top_show.style.format({
+#                             "Bind Propensity Score": "{:.3f}",
+#                             "Total Insured Value ($)": lambda v: f"${v:,.0f}"
+#                         }),
+#                         use_container_width=True
+#                     )
+
+#                     # Optional: show total expected value if present
+#                     if "Expected Value Numeric" in top_df.columns:
+#                         total_expected_value = float(top_df["Expected Value Numeric"].sum())
+#                         st.metric("Total Expected Value (Top 10)",
+#                                 f"${total_expected_value:,.2f}")
+
+#                     # --- Export button (Download as CSV) ---
+#                     # --- Export button (compact style) ---
+#                     csv_data = top_show.to_csv(index=False).encode("utf-8")
+
+#                     col1, col2, col3 = st.columns([4, 2, 4])  # center it nicely
+#                     with col2:
+#                         st.download_button(
+#                             label="⬇️ Download CSV",
+#                             data=csv_data,
+#                             file_name="top10_strike_zone.csv",
+#                             mime="text/csv",
+#                             key="download_top10"
+#                         )
+
+#         else:
+#             st.warning("No data with positive Total Insured Value to display on the chart.")
+#     else:
+#         st.warning("Data for visualization could not be loaded. Please check the CSV file.")
+
+
+
+
+
+
+
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+
 with tab2:
     st.header("Submissions Prioritization using Strike Zone")
-    if df_full is not None and 'TIV_Numeric' in df_full.columns:
-        plot_df = df_full[df_full['TIV_Numeric'] > 0].copy()
 
-        if not plot_df.empty:
-            x_data = plot_df['Bind Propensity Score']
-            y_data = plot_df['TIV_Numeric']
+    @st.cache_data(show_spinner=False)
+    def load_triaging_csv(path: str):
+        return pd.read_csv(path)
 
-            min_tiv = int(y_data.min())
-            max_tiv = int(y_data.max())
+    # --- READ THE CSV HERE ---
+    try:
+        df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
+    except Exception as e:
+        st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
+        st.stop()
 
-            values_x = st.slider("Select a Bind Propensity range for Strike Zone", 0.2, 1.0, (0.5, 1.0), key="slider_x_final")
-            values_y = st.slider("Select a Total Insured Value ($) range for Strike Zone", min_tiv, max_tiv, (int(max_tiv * 0.25), max_tiv), step=1000000, key="slider_y_final", format="$%d")
+    # --- guardrails: required columns ---
+    required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        st.warning(f"CSV is missing columns: {', '.join(missing)}")
+        st.stop()
 
-            fig = go.Figure()
+    # Clean + numeric
+    plot_df = df.copy()
+    plot_df = plot_df[
+        plot_df["Bind Propensity Score"].notna()
+        & plot_df["Expected_Profitability_Ratio"].notna()
+    ].copy()
+    plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
+        plot_df["Expected_Profitability_Ratio"], errors="coerce"
+    )
+    plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
 
-            # Add the scatter plot with color scale
-            fig.add_trace(go.Scatter(
-                x=x_data, 
-                y=y_data, 
-                mode='markers',
-                marker=dict(
-                    size=8,
-                    color=y_data, # Color points by TIV
-                    colorscale='Viridis', # A nice color scale
-                    showscale=True,
-                    colorbar=dict(title="TIV ($)"),
-                    opacity=0.7
-                ),
-                text=plot_df.apply(lambda row: f"Broker: {row['Broker Name']}<br>TIV: ${row['TIV_Numeric']:,.0f}", axis=1),
-                hoverinfo='text+x+y'
-            ))
+    if plot_df.empty:
+        st.warning("No valid rows to plot after cleaning the CSV.")
+        st.stop()
 
-            # Add the strike zone rectangle on top
-            fig.add_shape(type="rect",
-                          x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-                          line=dict(color="red", width=2),
-                          fillcolor="rgba(0,0,0,0)", # transparent fill
-                          layer="above")
-            
-            fig.update_layout(
-                title="Submissions Segmented by Bind Propensity and Total Insured Value",
-                xaxis_title="Bind Propensity Score",
-                yaxis_title="Total Insured Value ($) (Log Scale)",
-                yaxis_type="log",
-                xaxis_range=[0.2, 1.0],
-                showlegend=False,
-                height=600,
-                template="plotly_white"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            st.divider()
-            
-            st.write("### Simulate the Impact of Submission Prioritization")
+    x_data = plot_df["Bind Propensity Score"]
+    y_data = plot_df["Expected_Profitability_Ratio"]
 
-            # Filter to strike-zone
-            strike_zone_df = plot_df[
-                (plot_df['Bind Propensity Score'].between(values_x[0], values_x[1])) &
-                (plot_df['TIV_Numeric'].between(values_y[0], values_y[1]))
-            ].copy()
+    min_y = float(y_data.min())
+    max_y = float(y_data.max())
 
-            st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
+    values_x = st.slider(
+        "Select a Bind Propensity range for Strike Zone",
+        0.2, 1.0, (0.5, 1.0), key="slider_x_final"
+    )
+    values_y = st.slider(
+        "Select an Expected Profitability Ratio range for Strike Zone",
+        float(min_y), float(max_y),
+        (float(max_y * 0.25), float(max_y)),
+        key="slider_y_final"
+    )
 
-            # Guard: nothing to show
-            if strike_zone_df.empty:
-                st.warning("No submissions fall inside the Strike Zone. Try expanding the ranges.")
-            else:
-                if st.button("Run Simulation", key="top10_button_final"):
-                    # Sort by TIV desc, then Bind Propensity desc, and take top 10
-                    top_df = (
-                        strike_zone_df
-                        .sort_values(by=["TIV_Numeric", "Bind Propensity Score"], ascending=[False, False])
-                        .head(10)
-                        .copy()
-                        .reset_index(drop=True)  # Reset the index
-                    )
-                    top_df.index = top_df.index + 1  # Start numbering from 1 instead of 0
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=x_data,
+        y=y_data,
+        mode="markers",
+        marker=dict(
+            size=8,
+            color=y_data,         # color by Expected_Profitability_Ratio
+            colorscale="Viridis",
+            showscale=True,
+            colorbar=dict(title="Expected Profitability Ratio"),
+            opacity=0.7
+        ),
+        text=plot_df.apply(
+            lambda r: (
+                f"Broker: {r.get('Broker Name', '')}"
+                f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
+            ),
+            axis=1
+        ),
+        hoverinfo="text+x+y"
+    ))
 
+    # strike zone box
+    fig.add_shape(
+        type="rect",
+        x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
+        line=dict(color="red", width=2),
+        fillcolor="rgba(0,0,0,0)",
+        layer="above"
+    )
 
-                    # Choose columns to display
-                    display_cols = ["Submission ID", "Broker Name", "Industry",
-                                    "Bind Propensity Score", "TIV_Numeric"]
-                    display_cols = [c for c in display_cols if c in top_df.columns]
+    fig.update_layout(
+        title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
+        xaxis_title="Bind Propensity Score",
+        yaxis_title="Expected Profitability Ratio",
+        xaxis_range=[0.2, 1.0],
+        showlegend=False,
+        height=600,
+        template="plotly_white"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.divider()
 
-                    # Nicely rename for UI
-                    rename_map = {"TIV_Numeric": "Total Insured Value ($)"}
-                    top_show = top_df[display_cols].rename(columns=rename_map)
+    st.write("### Simulate the Impact of Submission Prioritization")
 
-                    st.write("#### Top 10 Submissions (Ranked by TIV and Bind Propensity)")
-                    st.dataframe(
-                        top_show.style.format({
-                            "Bind Propensity Score": "{:.3f}",
-                            "Total Insured Value ($)": lambda v: f"${v:,.0f}"
-                        }),
-                        use_container_width=True
-                    )
+    # filter to strike zone (using ratio on Y)
+    strike_zone_df = plot_df[
+        (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
+        & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
+    ].copy()
 
-                    # Optional: show total expected value if present
-                    if "Expected Value Numeric" in top_df.columns:
-                        total_expected_value = float(top_df["Expected Value Numeric"].sum())
-                        st.metric("Total Expected Value (Top 10)",
-                                f"${total_expected_value:,.2f}")
+    st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
 
-                    # --- Export button (Download as CSV) ---
-                    # --- Export button (compact style) ---
-                    csv_data = top_show.to_csv(index=False).encode("utf-8")
-
-                    col1, col2, col3 = st.columns([4, 2, 4])  # center it nicely
-                    with col2:
-                        st.download_button(
-                            label="⬇️ Download CSV",
-                            data=csv_data,
-                            file_name="top10_strike_zone.csv",
-                            mime="text/csv",
-                            key="download_top10"
-                        )
-
-        else:
-            st.warning("No data with positive Total Insured Value to display on the chart.")
+    if strike_zone_df.empty:
+        st.warning("No submissions fall inside the Strike Zone. Try expanding the ranges.")
     else:
-        st.warning("Data for visualization could not be loaded. Please check the CSV file.")
+        if st.button("Run Simulation", key="top10_button_final"):
+            top_df = (
+                strike_zone_df
+                .sort_values(
+                    by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
+                    ascending=[False, False]
+                )
+                .head(10)
+                .copy()
+                .reset_index(drop=True)
+            )
+            top_df.index = top_df.index + 1
+
+            display_cols = [
+                "Submission ID", "Broker Name", "Industry",
+                "Bind Propensity Score", "Expected_Profitability_Ratio"
+            ]
+            display_cols = [c for c in display_cols if c in top_df.columns]
+
+            rename_map = {"Expected_Profitability_Ratio": "Expected Profitability Ratio"}
+            top_show = top_df[display_cols].rename(columns=rename_map)
+
+            st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
+            st.dataframe(
+                top_show.style.format({
+                    "Bind Propensity Score": "{:.3f}",
+                    "Expected Profitability Ratio": "{:.3f}"
+                }),
+                use_container_width=True
+            )
+
+            if "Expected Value Numeric" in top_df.columns:
+                total_expected_value = float(top_df["Expected Value Numeric"].sum())
+                st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
+
+            csv_data = top_show.to_csv(index=False).encode("utf-8")
+            c1, c2, c3 = st.columns([4, 2, 4])
+            with c2:
+                st.download_button(
+                    "⬇️ Download CSV",
+                    data=csv_data,
+                    file_name="top10_strike_zone.csv",
+                    mime="text/csv",
+                    key="download_top10"
+                )
+
+
+
+
+
+
+
+
+
 
 # --- Tab 3: Broker Performance Insights ---
 # --- Tab 3: Broker Performance Insights ---
