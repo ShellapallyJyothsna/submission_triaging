@@ -3390,11 +3390,404 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+#############current working version with out normalization
+# with tab2:
+#     st.header("Submissions Prioritization using Strike Zone")
+
+#     # ---------- CSS: buttons (1-line text, consistent size) ----------
+#     st.markdown("""
+#         <style>
+#         div[data-testid="stButton"] > button {
+#             white-space: nowrap;
+#             height: 2.6rem !important;
+#             min-width: 170px !important;
+#             font-weight: 600 !important;
+#             font-size: 15px !important;
+#             padding: 0.4rem 1rem !important;
+#             border-radius: 10px !important;
+#         }
+#         /* KPI cards */
+#         .kpi-wrap {display:flex; gap:14px; flex-wrap:wrap;}
+#         .kpi-card {
+#           flex:1 1 260px; padding:16px 18px; border-radius:14px;
+#           background: linear-gradient(135deg, #f7f9ff 0%, #eef2ff 100%);
+#           border: 1px solid #e6ebff;
+#           box-shadow: 0 2px 10px rgba(30, 64, 175, .06);
+#         }
+#         .kpi-title {font-size:13px; color:#475569; margin-bottom:6px; letter-spacing:.2px;}
+#         .kpi-value {font-size:34px; font-weight:700; color:#0f172a; line-height:1.15;}
+#         .kpi-sub {font-size:12px; color:#6b7280; margin-top:4px;}
+#         .kpi-badge {
+#           display:inline-flex; align-items:center; gap:6px;
+#           font-size:12px; font-weight:600; padding:4px 8px; border-radius:999px;
+#         }
+#         .kpi-badge.up {color:#065f46; background:#ecfdf5; border:1px solid #34d399;}
+#         .kpi-badge.down {color:#7f1d1d; background:#fef2f2; border:1px solid #fca5a5;}
+#         .kpi-dot {width:8px; height:8px; border-radius:50%;}
+#         .dot-strike {background:#2563eb;}
+#         .dot-nonstrike {background:#a1a1aa;}
+#         .section-h {
+#           display:flex; align-items:center; gap:10px; margin:8px 0 14px;
+#           font-size:22px; font-weight:800; color:#0f172a;
+#         }
+#         .section-h .emoji {font-size:20px;}
+#         </style>
+#     """, unsafe_allow_html=True)
+
+#     # ---------- Helpers ----------
+#     @st.cache_data(show_spinner=False)
+#     def load_triaging_csv(path: str):
+#         return pd.read_csv(path)
+
+#     def _fmt_pct(x):
+#         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
+#         return f"{x*100:.1f}%"
+
+#     def _fmt_money(x):
+#         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
+#         return f"${x:,.0f}"
+
+#     def _rel_uplift(a_in, a_out):
+#         if a_out is None or (isinstance(a_out, float) and (np.isnan(a_out) or a_out == 0)):
+#             return None
+#         return (a_in - a_out) / a_out
+
+#     # ---------- READ CSV ----------
+#     try:
+#         df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
+#     except Exception as e:
+#         st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
+#         st.stop()
+
+#     # ---------- Guardrails ----------
+#     required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
+#     missing = required_cols - set(df.columns)
+#     if missing:
+#         st.warning(f"CSV is missing columns: {', '.join(missing)}")
+#         st.stop()
+
+#     # ---------- Clean + numeric ----------
+#     plot_df = df.copy()
+#     plot_df = plot_df[
+#         plot_df["Bind Propensity Score"].notna()
+#         & plot_df["Expected_Profitability_Ratio"].notna()
+#     ].copy()
+#     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
+#         plot_df["Expected_Profitability_Ratio"], errors="coerce"
+#     )
+#     # Profit dollars is optional; only used if present
+#     if "Expected_Profit_Dollars_With_Bind" in plot_df.columns:
+#         plot_df["Expected_Profit_Dollars_With_Bind"] = pd.to_numeric(
+#             plot_df["Expected_Profit_Dollars_With_Bind"], errors="coerce"
+#         )
+
+#     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
+#     if plot_df.empty:
+#         st.warning("No valid rows to plot after cleaning the CSV.")
+#         st.stop()
+
+#     x_data = plot_df["Bind Propensity Score"]
+#     y_data = plot_df["Expected_Profitability_Ratio"]
+#     min_y = float(y_data.min())
+#     max_y = float(y_data.max())
+
+#     # ---------- Sliders (strike zone) ----------
+#     values_x = st.slider(
+#         "Select a Bind Propensity range for Strike Zone",
+#         0.2, 1.0, (0.5, 1.0), key="slider_x_final"
+#     )
+#     values_y = st.slider(
+#         "Select an Expected Profitability Ratio range for Strike Zone",
+#         float(min_y), float(max_y),
+#         (float(max_y * 0.25), float(max_y)),
+#         key="slider_y_final"
+#     )
+
+#     # ---------- Scatter + strike box ----------
+#     fig = go.Figure()
+#     fig.add_trace(go.Scatter(
+#         x=x_data,
+#         y=y_data,
+#         mode="markers",
+#         marker=dict(
+#             size=8,
+#             color=y_data,
+#             colorscale="Viridis",
+#             showscale=True,
+#             colorbar=dict(title="Expected Profitability Ratio"),
+#             opacity=0.7
+#         ),
+#         text=plot_df.apply(
+#             lambda r: (
+#                 f"Broker: {r.get('Broker Name', '')}"
+#                 f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
+#             ),
+#             axis=1
+#         ),
+#         hoverinfo="text+x+y"
+#     ))
+#     fig.add_shape(
+#         type="rect",
+#         x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
+#         line=dict(color="red", width=2),
+#         fillcolor="rgba(0,0,0,0)",
+#         layer="above"
+#     )
+#     fig.update_layout(
+#         title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
+#         xaxis_title="Bind Propensity Score",
+#         yaxis_title="Expected Profitability Ratio",
+#         xaxis_range=[0.2, 1.0],
+#         showlegend=False,
+#         height=600,
+#         template="plotly_white"
+#     )
+#     st.plotly_chart(fig, use_container_width=True)
+#     st.divider()
+
+#     # ---------- Strike zone slice ----------
+#     strike_zone_df = plot_df[
+#         (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
+#         & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
+#     ].copy()
+
+#     st.write("### Simulate the Impact of Submission Prioritization")
+#     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
+
+#     # ---------- Button row: Run (left), Metrics (right) ----------
+#     left_btn_col, spacer, right_btn_col = st.columns([1, 6, 1])
+#     with left_btn_col:
+#         run_clicked = st.button("Run Simulation", key="run_simulation_btn")
+#     with right_btn_col:
+#         show_metrics_clicked = st.button("Show Metrics", key="show_zone_metrics_btn")
+
+#     # ---------- Run Simulation (Top-10 in strike zone) ----------
+#     if run_clicked and not strike_zone_df.empty:
+#         strike_top10 = (
+#             strike_zone_df
+#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
+#                          ascending=[False, False])
+#             .head(10)
+#             .copy()
+#         )
+
+#         display_cols = [
+#             "Submission ID", "Broker Name", "Industry",
+#             "Bind Propensity Score", "Expected_Profitability_Ratio"
+#         ]
+#         display_cols = [c for c in display_cols if c in strike_top10.columns]
+#         top_show = strike_top10[display_cols].rename(columns={
+#             "Expected_Profitability_Ratio": "Expected Profitability Ratio"
+#         })
+
+#         st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
+#         st.dataframe(
+#             top_show.style.format({
+#                 "Bind Propensity Score": "{:.1%}",
+#                 "Expected Profitability Ratio": "{:.1%}"
+#             }),
+#             use_container_width=True
+#         )
+
+#         if "Expected Value Numeric" in strike_top10.columns:
+#             total_expected_value = float(strike_top10["Expected Value Numeric"].sum())
+#             st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
+
+#         st.download_button(
+#             "⬇️ Download CSV",
+#             data=top_show.to_csv(index=False).encode("utf-8"),
+#             file_name="top10_strike_zone.csv",
+#             mime="text/csv",
+#             key="download_top10"
+#         )
+
+#         # Persist indices so Metrics can reuse exactly these rows
+#         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
+
+#     # ---------- Show Metrics (Top-10 Strike vs Top-10 Non-Strike) ----------
+#     if show_metrics_clicked:
+#         # Build Top-10 strike from session cache if available
+#         if "strike_top10_cached" in st.session_state:
+#             strike_idx = st.session_state["strike_top10_cached"]
+#             strike_top10 = plot_df.loc[strike_idx].copy()
+#         else:
+#             strike_top10 = (
+#                 strike_zone_df
+#                 .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
+#                              ascending=[False, False])
+#                 .head(10)
+#                 .copy()
+#             )
+
+#         # Top-10 in non-strike: choose from outside the strike zone
+#         non_strike_df = plot_df.drop(strike_zone_df.index) if not strike_zone_df.empty else plot_df
+#         non_strike_top10 = (
+#             non_strike_df
+#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
+#                          ascending=[False, False])
+#             .head(10)
+#             .copy()
+#         )
+
+#         # ---------- Averages: Bind Propensity ----------
+#         avg_bp_in  = float(strike_top10["Bind Propensity Score"].mean()) if not strike_top10.empty else np.nan
+#         avg_bp_out = float(non_strike_top10["Bind Propensity Score"].mean()) if not non_strike_top10.empty else np.nan
+#         upl_bp     = _rel_uplift(avg_bp_in, avg_bp_out)
+#         upl_bp_capped = None if upl_bp is None else max(-1.0, min(1.0, upl_bp))
+#         bp_badge_cls  = "up" if (upl_bp_capped or 0) >= 0 else "down"
+#         bp_badge_txt  = _fmt_pct(upl_bp_capped)
+
+#         # ---------- KPI section: Bind Propensity ----------
+#         st.markdown('<div class="section-h"><span class="emoji">📊</span>Bind Propensity — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
+#         bp_col1, bp_col2 = st.columns([2, 1])
+#         with bp_col1:
+#             st.markdown(
+#                 f"""
+#                 <div class="kpi-wrap">
+#                   <div class="kpi-card">
+#                     <div class="kpi-title"><span class="kpi-dot dot-strike"></span> Avg (Top 10 in Strike Zone)</div>
+#                     <div class="kpi-value">{_fmt_pct(avg_bp_in)}</div>
+#                     <div class="kpi-sub">Higher is better</div>
+#                   </div>
+#                   <div class="kpi-card">
+#                     <div class="kpi-title"><span class="kpi-dot dot-nonstrike"></span> Avg (Top 10 in Non-Strike)</div>
+#                     <div class="kpi-value">{_fmt_pct(avg_bp_out)}</div>
+#                     <div class="kpi-sub">Comparison baseline</div>
+#                   </div>
+#                   <div class="kpi-card">
+#                     <div class="kpi-title">Uplift (Relative)</div>
+#                     <div class="kpi-value">{bp_badge_txt}</div>
+#                     <div class="kpi-sub"><span class="kpi-badge {bp_badge_cls}">{'▲' if (upl_bp_capped or 0) >= 0 else '▼'} {bp_badge_txt}</span></div>
+#                   </div>
+#                 </div>
+#                 """,
+#                 unsafe_allow_html=True
+#             )
+#         with bp_col2:
+#             fig_bp = go.Figure()
+#             fig_bp.add_bar(
+#                 x=[avg_bp_in or 0, avg_bp_out or 0],
+#                 y=["Strike", "Non-Strike"],
+#                 orientation="h",
+#                 text=[_fmt_pct(avg_bp_in), _fmt_pct(avg_bp_out)],
+#                 textposition="auto",
+#                 marker_color=["#2563eb", "#a1a1aa"],
+#                 hovertemplate="%{y}: %{x:.2%}<extra></extra>",
+#             )
+#             fig_bp.update_layout(
+#                 height=160, margin=dict(l=10, r=10, t=10, b=10),
+#                 xaxis=dict(range=[0, 1], tickformat=".0%"),
+#                 yaxis=dict(showgrid=False),
+#                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+#             )
+#             st.plotly_chart(fig_bp, use_container_width=True, config={"displayModeBar": False})
+
+#         st.divider()
+
+#         # ---------- Averages: Expected Profit ($) ----------
+#         if "Expected_Profit_Dollars_With_Bind" in strike_top10.columns and "Expected_Profit_Dollars_With_Bind" in non_strike_top10.columns:
+#             avg_profit_in  = float(strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not strike_top10.empty else np.nan
+#             avg_profit_out = float(non_strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not non_strike_top10.empty else np.nan
+#             upl_profit     = _rel_uplift(avg_profit_in, avg_profit_out)
+#             upl_profit_capped = None if upl_profit is None else max(-1.0, min(1.0, upl_profit))
+#             p_badge_cls  = "up" if (upl_profit_capped or 0) >= 0 else "down"
+#             p_badge_txt  = _fmt_pct(upl_profit_capped)
+
+#             # ---------- KPI section: Expected Profit ($) ----------
+#             st.markdown('<div class="section-h"><span class="emoji">💹</span>Expected Profit ($) — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
+#             p_col1, p_col2 = st.columns([2, 1])
+#             with p_col1:
+#                 st.markdown(
+#                     f"""
+#                     <div class="kpi-wrap">
+#                       <div class="kpi-card">
+#                         <div class="kpi-title"><span class="kpi-dot dot-strike"></span> Avg (Top 10 in Strike Zone)</div>
+#                         <div class="kpi-value">{_fmt_money(avg_profit_in)}</div>
+#                         <div class="kpi-sub">Expected Profit Dollars With Bind</div>
+#                       </div>
+#                       <div class="kpi-card">
+#                         <div class="kpi-title"><span class="kpi-dot dot-nonstrike"></span> Avg (Top 10 in Non-Strike)</div>
+#                         <div class="kpi-value">{_fmt_money(avg_profit_out)}</div>
+#                         <div class="kpi-sub">Comparison baseline</div>
+#                       </div>
+#                       <div class="kpi-card">
+#                         <div class="kpi-title">Uplift (Relative)</div>
+#                         <div class="kpi-value">{p_badge_txt}</div>
+#                         <div class="kpi-sub"><span class="kpi-badge {p_badge_cls}">{'▲' if (upl_profit_capped or 0) >= 0 else '▼'} {p_badge_txt}</span></div>
+#                       </div>
+#                     </div>
+#                     """,
+#                     unsafe_allow_html=True
+#                 )
+#             with p_col2:
+#                 fig_pr = go.Figure()
+#                 fig_pr.add_bar(
+#                     x=[avg_profit_in or 0, avg_profit_out or 0],
+#                     y=["Strike", "Non-Strike"],
+#                     orientation="h",
+#                     text=[_fmt_money(avg_profit_in), _fmt_money(avg_profit_out)],
+#                     textposition="auto",
+#                     marker_color=["#2563eb", "#a1a1aa"],
+#                     hovertemplate="%{y}: $%{x:,.0f}<extra></extra>",
+#                 )
+#                 max_profit = max((avg_profit_in or 0), (avg_profit_out or 0), 1)
+#                 fig_pr.update_layout(
+#                     height=160, margin=dict(l=10, r=10, t=10, b=10),
+#                     xaxis=dict(range=[0, max_profit*1.15], tickprefix="$", separatethousands=True),
+#                     yaxis=dict(showgrid=False),
+#                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+#                 )
+#                 st.plotly_chart(fig_pr, use_container_width=True, config={"displayModeBar": False})
+
+#             st.divider()
+
+#         # ---------- Two Top-10 tables side-by-side ----------
+#         # Show Expected Profit ($) instead of EPR if available; otherwise fallback to EPR
+#         profit_col = "Expected_Profit_Dollars_With_Bind"
+#         use_profit = profit_col in strike_top10.columns and profit_col in non_strike_top10.columns
+
+#         cols_keep = ["Submission ID", "Broker Name", "Bind Propensity Score"]
+#         if use_profit:
+#             cols_keep.append(profit_col)
+#         elif "Expected_Profitability_Ratio" in strike_top10.columns:
+#             cols_keep.append("Expected_Profitability_Ratio")
+
+#         left_tbl, right_tbl = st.columns(2)
+
+#         with left_tbl:
+#             st.write("#### 🏅 Top 10 — Strike Zone")
+#             df_show = strike_top10[[c for c in cols_keep if c in strike_top10.columns]].rename(columns={
+#                 "Bind Propensity Score": "Bind Propensity",
+#                 profit_col: "Expected Profit ($)",
+#                 "Expected_Profitability_Ratio": "Expected Profitability Ratio"
+#             })
+#             sty = {"Bind Propensity": "{:.1%}"}
+#             if "Expected Profit ($)" in df_show.columns:
+#                 sty["Expected Profit ($)"] = "${:,.0f}"
+#             if "Expected Profitability Ratio" in df_show.columns:
+#                 sty["Expected Profitability Ratio"] = "{:.1%}"
+#             st.dataframe(df_show.style.format(sty), use_container_width=True)
+
+#         with right_tbl:
+#             st.write("#### 📄 Top 10 — Non-Strike Zone")
+#             df_show = non_strike_top10[[c for c in cols_keep if c in non_strike_top10.columns]].rename(columns={
+#                 "Bind Propensity Score": "Bind Propensity",
+#                 profit_col: "Expected Profit ($)",
+#                 "Expected_Profitability_Ratio": "Expected Profitability Ratio"
+#             })
+#             sty = {"Bind Propensity": "{:.1%}"}
+#             if "Expected Profit ($)" in df_show.columns:
+#                 sty["Expected Profit ($)"] = "${:,.0f}"
+#             if "Expected Profitability Ratio" in df_show.columns:
+#                 sty["Expected Profitability Ratio"] = "{:.1%}"
+#             st.dataframe(df_show.style.format(sty), use_container_width=True)
+
+
 
 with tab2:
     st.header("Submissions Prioritization using Strike Zone")
 
-    # ---------- CSS: buttons (1-line text, consistent size) ----------
+    # ---------- CSS ----------
     st.markdown("""
         <style>
         div[data-testid="stButton"] > button {
@@ -3406,7 +3799,6 @@ with tab2:
             padding: 0.4rem 1rem !important;
             border-radius: 10px !important;
         }
-        /* KPI cards */
         .kpi-wrap {display:flex; gap:14px; flex-wrap:wrap;}
         .kpi-card {
           flex:1 1 260px; padding:16px 18px; border-radius:14px;
@@ -3442,15 +3834,16 @@ with tab2:
     def _fmt_pct(x):
         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
         return f"{x*100:.1f}%"
+    def _fmt_delta(x):
+        """Format plain delta numbers without % sign."""
+        if x is None or (isinstance(x, float) and np.isnan(x)):
+            return "—"
+        return f"{x*100:.1f}"  # multiply by 100, but don't add '%'
+
 
     def _fmt_money(x):
         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
         return f"${x:,.0f}"
-
-    def _rel_uplift(a_in, a_out):
-        if a_out is None or (isinstance(a_out, float) and (np.isnan(a_out) or a_out == 0)):
-            return None
-        return (a_in - a_out) / a_out
 
     # ---------- READ CSV ----------
     try:
@@ -3472,14 +3865,25 @@ with tab2:
         plot_df["Bind Propensity Score"].notna()
         & plot_df["Expected_Profitability_Ratio"].notna()
     ].copy()
+
     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
         plot_df["Expected_Profitability_Ratio"], errors="coerce"
     )
-    # Profit dollars is optional; only used if present
+
     if "Expected_Profit_Dollars_With_Bind" in plot_df.columns:
         plot_df["Expected_Profit_Dollars_With_Bind"] = pd.to_numeric(
             plot_df["Expected_Profit_Dollars_With_Bind"], errors="coerce"
         )
+        # Winsorize 5–95% and min–max normalize to 0..1 for % display & diff calc
+        prof = plot_df["Expected_Profit_Dollars_With_Bind"]
+        q05, q95 = prof.quantile(0.05), prof.quantile(0.95)
+        if pd.notna(q05) and pd.notna(q95) and q95 > q05:
+            prof_clip = prof.clip(lower=q05, upper=q95)
+            denom = (q95 - q05)
+            plot_df["Profit_Norm"] = (prof_clip - q05) / denom
+        else:
+            maxv = prof.max() if pd.notna(prof.max()) and prof.max() != 0 else 1.0
+            plot_df["Profit_Norm"] = prof / maxv
 
     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
     if plot_df.empty:
@@ -3554,7 +3958,7 @@ with tab2:
     st.write("### Simulate the Impact of Submission Prioritization")
     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
 
-    # ---------- Button row: Run (left), Metrics (right) ----------
+    # ---------- Button row ----------
     left_btn_col, spacer, right_btn_col = st.columns([1, 6, 1])
     with left_btn_col:
         run_clicked = st.button("Run Simulation", key="run_simulation_btn")
@@ -3601,12 +4005,10 @@ with tab2:
             key="download_top10"
         )
 
-        # Persist indices so Metrics can reuse exactly these rows
         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
 
     # ---------- Show Metrics (Top-10 Strike vs Top-10 Non-Strike) ----------
     if show_metrics_clicked:
-        # Build Top-10 strike from session cache if available
         if "strike_top10_cached" in st.session_state:
             strike_idx = st.session_state["strike_top10_cached"]
             strike_top10 = plot_df.loc[strike_idx].copy()
@@ -3619,7 +4021,6 @@ with tab2:
                 .copy()
             )
 
-        # Top-10 in non-strike: choose from outside the strike zone
         non_strike_df = plot_df.drop(strike_zone_df.index) if not strike_zone_df.empty else plot_df
         non_strike_top10 = (
             non_strike_df
@@ -3629,15 +4030,14 @@ with tab2:
             .copy()
         )
 
-        # ---------- Averages: Bind Propensity ----------
+        # ---------- Bind Propensity: % point difference ----------
         avg_bp_in  = float(strike_top10["Bind Propensity Score"].mean()) if not strike_top10.empty else np.nan
         avg_bp_out = float(non_strike_top10["Bind Propensity Score"].mean()) if not non_strike_top10.empty else np.nan
-        upl_bp     = _rel_uplift(avg_bp_in, avg_bp_out)
-        upl_bp_capped = None if upl_bp is None else max(-1.0, min(1.0, upl_bp))
-        bp_badge_cls  = "up" if (upl_bp_capped or 0) >= 0 else "down"
-        bp_badge_txt  = _fmt_pct(upl_bp_capped)
+        diff_bp    = None if (np.isnan(avg_bp_in) or np.isnan(avg_bp_out)) else (avg_bp_in - avg_bp_out)
+        bp_badge_cls  = "up" if (diff_bp or 0) >= 0 else "down"
+        # bp_badge_txt  = _fmt_pct(diff_bp)
+        bp_badge_txt = _fmt_delta(diff_bp)
 
-        # ---------- KPI section: Bind Propensity ----------
         st.markdown('<div class="section-h"><span class="emoji">📊</span>Bind Propensity — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
         bp_col1, bp_col2 = st.columns([2, 1])
         with bp_col1:
@@ -3655,9 +4055,9 @@ with tab2:
                     <div class="kpi-sub">Comparison baseline</div>
                   </div>
                   <div class="kpi-card">
-                    <div class="kpi-title">Uplift (Relative)</div>
+                    <div class="kpi-title">Delta</div>
                     <div class="kpi-value">{bp_badge_txt}</div>
-                    <div class="kpi-sub"><span class="kpi-badge {bp_badge_cls}">{'▲' if (upl_bp_capped or 0) >= 0 else '▼'} {bp_badge_txt}</span></div>
+                    <div class="kpi-sub"><span class="kpi-badge {bp_badge_cls}">{'▲' if (diff_bp or 0) >= 0 else '▼'} {bp_badge_txt}</span></div>
                   </div>
                 </div>
                 """,
@@ -3684,17 +4084,24 @@ with tab2:
 
         st.divider()
 
-        # ---------- Averages: Expected Profit ($) ----------
-        if "Expected_Profit_Dollars_With_Bind" in strike_top10.columns and "Expected_Profit_Dollars_With_Bind" in non_strike_top10.columns:
-            avg_profit_in  = float(strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not strike_top10.empty else np.nan
-            avg_profit_out = float(non_strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not non_strike_top10.empty else np.nan
-            upl_profit     = _rel_uplift(avg_profit_in, avg_profit_out)
-            upl_profit_capped = None if upl_profit is None else max(-1.0, min(1.0, upl_profit))
-            p_badge_cls  = "up" if (upl_profit_capped or 0) >= 0 else "down"
-            p_badge_txt  = _fmt_pct(upl_profit_capped)
+        # ---------- Expected Profit: show % (from normalized) + % point difference ----------
+        profit_col_dollars = "Expected_Profit_Dollars_With_Bind"
+        profit_col_norm    = "Profit_Norm"
 
-            # ---------- KPI section: Expected Profit ($) ----------
-            st.markdown('<div class="section-h"><span class="emoji">💹</span>Expected Profit ($) — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
+        if profit_col_norm in strike_top10.columns and profit_col_norm in non_strike_top10.columns:
+            avg_profit_in_pct  = float(strike_top10[profit_col_norm].mean())
+            avg_profit_out_pct = float(non_strike_top10[profit_col_norm].mean())
+            diff_profit        = avg_profit_in_pct - avg_profit_out_pct  # percentage-point difference
+
+            # Optional context in dollars
+            avg_profit_in_dollars  = float(strike_top10[profit_col_dollars].mean())  if profit_col_dollars in strike_top10.columns else np.nan
+            avg_profit_out_dollars = float(non_strike_top10[profit_col_dollars].mean()) if profit_col_dollars in non_strike_top10.columns else np.nan
+
+            p_badge_cls = "up" if (diff_profit or 0) >= 0 else "down"
+            # p_badge_txt = _fmt_pct(diff_profit)
+            p_badge_txt  = _fmt_delta(diff_profit)
+
+            st.markdown('<div class="section-h"><span class="emoji">💹</span>Expected Profit (%) — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
             p_col1, p_col2 = st.columns([2, 1])
             with p_col1:
                 st.markdown(
@@ -3702,18 +4109,18 @@ with tab2:
                     <div class="kpi-wrap">
                       <div class="kpi-card">
                         <div class="kpi-title"><span class="kpi-dot dot-strike"></span> Avg (Top 10 in Strike Zone)</div>
-                        <div class="kpi-value">{_fmt_money(avg_profit_in)}</div>
-                        <div class="kpi-sub">Expected Profit Dollars With Bind</div>
+                        <div class="kpi-value">{_fmt_pct(avg_profit_in_pct)}</div>
+                        
                       </div>
                       <div class="kpi-card">
                         <div class="kpi-title"><span class="kpi-dot dot-nonstrike"></span> Avg (Top 10 in Non-Strike)</div>
-                        <div class="kpi-value">{_fmt_money(avg_profit_out)}</div>
-                        <div class="kpi-sub">Comparison baseline</div>
+                        <div class="kpi-value">{_fmt_pct(avg_profit_out_pct)}</div>
+                        
                       </div>
                       <div class="kpi-card">
-                        <div class="kpi-title">Uplift (Relative)</div>
+                        <div class="kpi-title">Delta</div>
                         <div class="kpi-value">{p_badge_txt}</div>
-                        <div class="kpi-sub"><span class="kpi-badge {p_badge_cls}">{'▲' if (upl_profit_capped or 0) >= 0 else '▼'} {p_badge_txt}</span></div>
+                        <div class="kpi-sub"><span class="kpi-badge {p_badge_cls}">{'▲' if (diff_profit or 0) >= 0 else '▼'} {p_badge_txt}</span></div>
                       </div>
                     </div>
                     """,
@@ -3722,27 +4129,26 @@ with tab2:
             with p_col2:
                 fig_pr = go.Figure()
                 fig_pr.add_bar(
-                    x=[avg_profit_in or 0, avg_profit_out or 0],
+                    x=[avg_profit_in_pct or 0, avg_profit_out_pct or 0],
                     y=["Strike", "Non-Strike"],
                     orientation="h",
-                    text=[_fmt_money(avg_profit_in), _fmt_money(avg_profit_out)],
+                    text=[_fmt_pct(avg_profit_in_pct), _fmt_pct(avg_profit_out_pct)],
                     textposition="auto",
                     marker_color=["#2563eb", "#a1a1aa"],
-                    hovertemplate="%{y}: $%{x:,.0f}<extra></extra>",
+                    hovertemplate="%{y}: %{x:.1%}<extra></extra>",
                 )
-                max_profit = max((avg_profit_in or 0), (avg_profit_out or 0), 1)
                 fig_pr.update_layout(
                     height=160, margin=dict(l=10, r=10, t=10, b=10),
-                    xaxis=dict(range=[0, max_profit*1.15], tickprefix="$", separatethousands=True),
+                    xaxis=dict(range=[0, 1], tickformat=".0%"),
                     yaxis=dict(showgrid=False),
                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 )
                 st.plotly_chart(fig_pr, use_container_width=True, config={"displayModeBar": False})
 
+            # st.caption("Percentages are from winsorized (5–95%) and min–max normalized profit dollars (0–1). Difference is Strike − Non-Strike (percentage points).")
             st.divider()
 
-        # ---------- Two Top-10 tables side-by-side ----------
-        # Show Expected Profit ($) instead of EPR if available; otherwise fallback to EPR
+        # ---------- Two Top-10 tables ----------
         profit_col = "Expected_Profit_Dollars_With_Bind"
         use_profit = profit_col in strike_top10.columns and profit_col in non_strike_top10.columns
 
@@ -3781,9 +4187,6 @@ with tab2:
             if "Expected Profitability Ratio" in df_show.columns:
                 sty["Expected Profitability Ratio"] = "{:.1%}"
             st.dataframe(df_show.style.format(sty), use_container_width=True)
-
-
-
 
 
 
