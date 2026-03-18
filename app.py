@@ -1829,51 +1829,213 @@ import plotly.express as px
 
 # --- Page Configuration and Styling (Apply globally) ---
 st.set_page_config(layout="wide")
+##########white themed
+# st.markdown("""
+# <style>
+# /* Main app background */
+# .stApp {
+#     background-color: #f0f8ff; /* Light AliceBlue background */
+# }
+
+# /* Main title */
+# h1 {
+#     color: #004080; /* Dark blue */
+# }
+
+# /* Subheaders */
+# h2, h3 {
+#     color: #0055a4; /* Slightly lighter blue */
+# }
+
+# /* Style for buttons */
+# .stButton>button {
+#     color: #ffffff;
+#     background: linear-gradient(45deg, #007bff, #0056b3);
+#     border: none;
+#     border-radius: 12px;
+#     padding: 12px 28px;
+#     font-size: 16px;
+#     font-weight: bold;
+#     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+#     transition: 0.3s;
+#     width: 100%; /* Make buttons fill column width */
+# }
+
+# .stButton>button:hover {
+#     background: linear-gradient(45deg, #0056b3, #007bff);
+#     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+#     transform: translateY(-2px);
+# }
+
+# /* Styling for the main content container */
+# .main .block-container {
+#     border-radius: 20px;
+#     background-color: #ffffff;
+#     padding: 2rem;
+#     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+# }
+# </style>
+# """, unsafe_allow_html=True)
+###dark themed
+# st.markdown("""
+# <style>
+# /* 1. Main app background and base text */
+# .stApp {
+#     background-color: #0E1117; /* Deep Dark Background */
+#     color: #FAFAFA;
+# }
+
+# /* 2. Field Labels (Broker Name, Industry, etc.) */
+# /* This targets the actual text above your input boxes */
+# label, [data-testid="stWidgetLabel"] p {
+#     color: #FAFAFA !important;
+#     font-weight: 500 !important;
+#     font-size: 1rem !important;
+# }
+
+# /* 3. Main title and headers */
+# h1, h2, h3, h4, h5, h6 {
+#     color: #00D4FF !important; /* Cyber Blue */
+# }
+
+# /* 4. Style for containers/cards */
+# [data-testid="stVerticalBlock"] > div > div > div[style*="background-color"] {
+#     background-color: #161B22 !important; 
+#     border: 1px solid #30363D;
+#     border-radius: 15px;
+# }
+
+# /* 5. Buttons */
+# .stButton>button {
+#     color: #ffffff;
+#     background: linear-gradient(45deg, #1f6feb, #00d4ff);
+#     border: none;
+#     border-radius: 8px;
+#     font-weight: bold;
+#     transition: 0.3s;
+# }
+
+# .stButton>button:hover {
+#     box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+#     transform: scale(1.02);
+# }
+
+# /* 6. Metric styling */
+# [data-testid="stMetricValue"] {
+#     color: #00D4FF !important;
+# }
+
+# /* 7. Tabs */
+# .stTabs [data-baseweb="tab-list"] {
+#     gap: 24px;
+# }
+# .stTabs [data-baseweb="tab"] {
+#     height: 50px;
+#     background-color: transparent !important;
+#     color: white !important;
+# }
+# .stTabs [aria-selected="true"] {
+#     border-bottom-color: #00D4FF !important;
+# }
+
+# /* 8. Fix for help text and markdown prose */
+# .stMarkdown p {
+#     color: #FAFAFA;
+# }
+
+# </style>
+# """, unsafe_allow_html=True)
+
+
+
+
+
+
+
 
 st.markdown("""
 <style>
+
+/* FULL PAGE BACKGROUND FIX */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+    background-color: #0E1117 !important;
+}
+
+/* Remove top white bar padding */
+[data-testid="stHeader"] {
+    background-color: #0E1117 !important;
+}
+
+/* Sidebar (if used) */
+[data-testid="stSidebar"] {
+    background-color: #0E1117 !important;
+}
+
 /* Main app background */
 .stApp {
-    background-color: #f0f8ff; /* Light AliceBlue background */
+    background-color: #0E1117 !important;
+    color: #FAFAFA;
 }
 
-/* Main title */
-h1 {
-    color: #004080; /* Dark blue */
+/* Labels */
+label, [data-testid="stWidgetLabel"] p {
+    color: #FAFAFA !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
 }
 
-/* Subheaders */
-h2, h3 {
-    color: #0055a4; /* Slightly lighter blue */
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: #00D4FF !important;
 }
 
-/* Style for buttons */
+/* Containers */
+[data-testid="stVerticalBlock"] > div > div > div[style*="background-color"] {
+    background-color: #161B22 !important; 
+    border: 1px solid #30363D;
+    border-radius: 15px;
+}
+
+/* Buttons */
 .stButton>button {
     color: #ffffff;
-    background: linear-gradient(45deg, #007bff, #0056b3);
+    background: linear-gradient(45deg, #1f6feb, #00d4ff);
     border: none;
-    border-radius: 12px;
-    padding: 12px 28px;
-    font-size: 16px;
+    border-radius: 8px;
     font-weight: bold;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
-    width: 100%; /* Make buttons fill column width */
 }
 
 .stButton>button:hover {
-    background: linear-gradient(45deg, #0056b3, #007bff);
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    transform: scale(1.02);
 }
 
-/* Styling for the main content container */
-.main .block-container {
-    border-radius: 20px;
-    background-color: #ffffff;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+/* Metric */
+[data-testid="stMetricValue"] {
+    color: #00D4FF !important;
 }
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 24px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 50px;
+    background-color: transparent !important;
+    color: white !important;
+}
+
+.stTabs [aria-selected="true"] {
+    border-bottom-color: #00D4FF !important;
+}
+
+/* Markdown */
+.stMarkdown p {
+    color: #FAFAFA;
+}
+
 </style>
 """, unsafe_allow_html=True)
 # --- Tier offsets + helpers (ADD THIS) ---
@@ -1891,16 +2053,56 @@ def _signature_without_tier(row_dict: dict) -> tuple:
 
 
 # --- Helper Function for Gauge Chart ---
+# def create_gauge_chart(score, level):
+#     """Creates a more polished and eye-catching Plotly gauge chart."""
+#     fig = go.Figure(go.Indicator(
+#         mode="gauge+number",
+#         value=score,
+#         domain={'x': [0.1, 0.9], 'y': [0, 0.9]},
+#         title={'text': f"<b>Bind Propensity Score</b><br><span style='font-size:1.2em;color:grey'>{level}</span>", 'font': {'size': 24}},
+#         number={'valueformat': '.2f'},
+#         gauge={
+#             'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "darkslategray"},
+#             'bar': {'color': "darkslategray", 'thickness': 0.4},
+#             'bgcolor': "white",
+#             'borderwidth': 2,
+#             'bordercolor': "#E0E0E0",
+#             'steps': [
+#                 {'range': [0, 0.4], 'color': '#FF7979'},
+#                 {'range': [0.4, 0.65], 'color': '#FFC312'},
+#                 {'range': [0.65, 1], 'color': '#009432'}
+#             ],
+#         }))
+        
+#     fig.update_layout(
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         font={'color': "darkslategray", 'family': "Arial, Helvetica, sans-serif"},
+#         height=350,
+#         margin=dict(l=20, r=20, b=20, t=50)
+#     )
+#     return fig
+
 def create_gauge_chart(score, level):
     """Creates a more polished and eye-catching Plotly gauge chart."""
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
         domain={'x': [0.1, 0.9], 'y': [0, 0.9]},
-        title={'text': f"<b>Bind Propensity Score</b><br><span style='font-size:1.2em;color:grey'>{level}</span>", 'font': {'size': 24}},
-        number={'valueformat': '.2f'},
+        title={
+            'text': f"<b>Bind Propensity Score</b><br><span style='font-size:1.2em;color:white'>{level}</span>",
+            'font': {'size': 24, 'color': 'white'}
+        },
+        number={
+            'valueformat': '.2f',
+            'font': {'color': 'white'}
+        },
         gauge={
-            'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "darkslategray"},
+            'axis': {
+                'range': [0, 1],
+                'tickwidth': 1,
+                'tickcolor': "white"
+            },
             'bar': {'color': "darkslategray", 'thickness': 0.4},
             'bgcolor': "white",
             'borderwidth': 2,
@@ -1915,10 +2117,11 @@ def create_gauge_chart(score, level):
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font={'color': "darkslategray", 'family': "Arial, Helvetica, sans-serif"},
+        font={'color': "white", 'family': "Arial, Helvetica, sans-serif"},
         height=350,
         margin=dict(l=20, r=20, b=20, t=50)
     )
+
     return fig
 
 # --- Business-Friendly Feature Aggregation and Formatting ---
@@ -1943,99 +2146,7 @@ def aggregate_shap_values(shap_values, feature_names, original_features):
 
 
 
-# @st.cache_data(show_spinner=False)
-# def get_llm_explanation(score, level, _input_data, _shap_values, _feature_names):
-#     """Generates a natural language explanation for a prediction using Azure OpenAI."""
-#     try:
-#         from openai import AzureOpenAI
 
-#         client = AzureOpenAI(
-#             azure_endpoint="https://advancedanalyticsopenaikey.openai.azure.com/",
-#             api_key="FqFd4DBx1W97MSVjcZvdQsmQlhI80hXjl48iWYmZ4W3NutUlWvf0JQQJ99BDACYeBjFXJ3w3AAABACOGl3xo",
-#             api_version="2024-02-15-preview"
-#         )
-
-#         # ---- Build top-features summary (unchanged) ----
-#         aggregated_shaps = aggregate_shap_values(_shap_values[0], _feature_names, _input_data.columns)
-#         top_features_series = aggregated_shaps.abs().nlargest(5)
-
-#         feature_summary = ""
-#         for feature_name, _ in top_features_series.items():
-#             shap_val = aggregated_shaps[feature_name]
-#             impact = "positively" if shap_val > 0 else "negatively"
-#             value = _input_data[feature_name].iloc[0] if feature_name in _input_data.columns else None
-#             display_name = f"{feature_name} = {value}" if isinstance(value, str) else feature_name
-#             feature_summary += f"- **{display_name}** influenced the score **{impact}**.\n"
-
-#         # ---- Three templates ----
-#         low_prompt = f"""
-# You are an expert underwriting assistant.
-
-# Model result:
-# - Bind Propensity Score: {score:.2f}
-# - Likelihood level: LOW
-
-# Top factors influencing the prediction:
-# {feature_summary}
-
-# Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
-# Explain clearly why the submission scored low — emphasize risk signals such as weak historical bind rate, incomplete/low-quality documentation, higher exposures/TIV, CAT exposure, or weaker broker tier.
-# Use causal business language (Because… therefore…) rather than listing features.
-# End with **one short improvement angle** that could raise the likelihood.
-# """
-
-#         medium_prompt = f"""
-# You are an expert underwriting assistant.
-
-# Model result:
-# - Bind Propensity Score: {score:.2f}
-# - Likelihood level: MEDIUM
-
-# Top factors influencing the prediction:
-# {feature_summary}
-
-# Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
-# Describe how **positives** (e.g., complete submission, stronger broker tier, non-CAT region) are **offset by risks** (e.g., historical bind performance, higher contents/TIV).
-# Use causal business reasoning, not a bullet list.
-# Conclude with what **small improvements** could shift this case to high likelihood.
-# """
-
-#         high_prompt = f"""
-# You are an expert underwriting assistant.
-
-# Model result:
-# - Bind Propensity Score: {score:.2f}
-# - Likelihood level: HIGH
-
-# Top factors influencing the prediction:
-# {feature_summary}
-
-# Write a **Key Drivers** explanation in **2–3 sentences** for an underwriter.
-# Explain **why this is a strong opportunity** — e.g., solid historical bind record, Gold/Platinum broker tier, complete documentation, stable/non-CAT profile.
-# Use straightforward business language and tie the factors together.
-# End with **one quick validation checkpoint** (e.g., pricing/exposure alignment) before issuance.
-# """
-
-#         # ---- Auto-select template ----
-#         lvl = (level or "").strip().lower()
-#         if lvl == "low":
-#             prompt = low_prompt
-#         elif lvl == "medium":
-#             prompt = medium_prompt
-#         else:
-#             prompt = high_prompt
-
-#         # ---- LLM call (same model/settings) ----
-#         response = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[{"role": "user", "content": prompt}],
-#             temperature=0.4,   # slightly lower for consistency
-#             max_tokens=200
-#         )
-#         return response.choices[0].message.content.strip()
-
-#     except Exception as e:
-#         return f"Could not generate AI explanation. Error: {e}"
 
 
 
@@ -2074,6 +2185,106 @@ def get_level_explanation_text(level: str, score: float) -> str:
 
 
 
+
+
+# def create_top_5_shap_plot(shap_values, feature_names, input_data):
+#     """
+#     Creates an interactive Plotly bar chart for the top 5 aggregated SHAP features.
+
+#     Rules:
+#       A) Only 'Historical Bind Rate' is forced by Broker Tier
+#          - Bronze/Silver => negative
+#          - Gold => positive, random value between 0.03–0.06
+#          - Platinum => positive, random value between 0.04–0.08
+#       B) Case-level modifier (if available): Low vs Medium
+#          - 'low'   => stronger negative impact (more magnitude)
+#          - 'medium'=> weaker negative impact (less magnitude)
+#     """
+#     # Aggregate SHAP values
+#     aggregated_shaps = aggregate_shap_values(shap_values[0], feature_names, input_data.columns)
+
+#     # --- RULE OVERRIDE for Historical Bind Rate ---
+#     if "Historical Bind Rate" in aggregated_shaps.index:
+#         broker_tier = input_data["Broker Tier"].iloc[0]
+
+#         # Helper: stable RNG seeded by other inputs (prevents flicker)
+#         row = input_data.iloc[0].to_dict()
+#         seed_tuple = tuple(sorted((k, v) for k, v in row.items() if k != "Broker Tier"))
+#         r = random.Random(hash(str(seed_tuple)) & 0xFFFFFFFF)
+
+#         if broker_tier in ("Gold", "Platinum"):
+#             rng = (0.03, 0.06) if broker_tier == "Gold" else (0.04, 0.08)
+#             aggregated_shaps.loc["Historical Bind Rate"] = r.uniform(*rng)
+
+#         elif broker_tier in ("Bronze", "Silver"):
+#             # start from model value (negative) + jitter
+#             hb_val = float(aggregated_shaps.loc["Historical Bind Rate"])
+#             jitter = r.uniform(0.92, 1.08)  # small variation around model magnitude
+#             base_negative = -abs(hb_val) * jitter
+
+#             # ---- Case-Level Modifier (Low vs Medium) ----
+#             # Try to find a column that indicates case level.
+#             case_col_candidates = [
+#                 "Case Level", "Case", "Case Complexity", "Submission Case",
+#                 "Risk Case", "Opportunity Case", "Opportunity Size", "Deal Size"
+#             ]
+#             case_level_value = None
+#             for col in case_col_candidates:
+#                 if col in input_data.columns:
+#                     v = str(input_data[col].iloc[0]).strip().lower()
+#                     if v in ("low", "medium"):
+#                         case_level_value = v
+#                         break
+
+#             # Default multipliers keep behavior unchanged if no case column is present
+#             # Ensure: |low| > |medium|
+#             if case_level_value == "low":
+#                 # stronger negative (e.g., 1.15–1.40x)
+#                 factor = r.uniform(1.15, 1.40)
+#             elif case_level_value == "medium":
+#                 # weaker negative (e.g., 0.60–0.90x)
+#                 factor = r.uniform(0.60, 0.90)
+#             else:
+#                 factor = 1.0  # no case info → keep base behavior
+
+#             aggregated_shaps.loc["Historical Bind Rate"] = base_negative * factor
+
+#     # Top-5 by absolute value
+#     top_5_series = aggregated_shaps.abs().nlargest(5)
+#     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
+
+#     # Colors: blue for positive, red for negative
+#     colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
+
+#     # Labels: add "= value" for categoricals
+#     renamed_index = []
+#     for feature_name in top_5_shap_series.index:
+#         val = input_data[feature_name].iloc[0] if feature_name in input_data.columns else None
+#         if isinstance(val, str):
+#             renamed_index.append(f"{feature_name} = {val}")
+#         else:
+#             renamed_index.append(feature_name)
+
+#     # Plot
+#     fig = go.Figure(go.Bar(
+#         x=top_5_shap_series.values,
+#         y=renamed_index,
+#         orientation='h',
+#         marker_color=colors,
+#         text=np.round(top_5_shap_series.values, 3),
+#         textposition='auto'
+#     ))
+
+#     fig.update_layout(
+#         xaxis_title="SHAP Value (Impact on Prediction)",
+#         yaxis_title="Feature",
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         height=400,
+#         margin=dict(l=10, r=10, t=10, b=10),
+#         xaxis=dict(range=[-0.15, 0.15])   # 🔥 fixed scale across all charts
+#     )
+#     return fig
 
 
 def create_top_5_shap_plot(shap_values, feature_names, input_data):
@@ -2138,46 +2349,104 @@ def create_top_5_shap_plot(shap_values, feature_names, input_data):
 
             aggregated_shaps.loc["Historical Bind Rate"] = base_negative * factor
 
-    # Top-5 by absolute value
+    # 2. Select Top-5
     top_5_series = aggregated_shaps.abs().nlargest(5)
     top_5_shap_series = aggregated_shaps[top_5_series.index].sort_values(ascending=True)
+    
+    values = top_5_shap_series.values
+    
+    # 3. Define the "Tiled" Color Palette
+    # We use a list of colors to create the 'segmented' look
+    # 1. Vibrant Tile Sets (starting from visible mid-tones)
+    green_tiles = ['#A5D6A7', '#81C784', '#66BB6A', '#4CAF50', '#43A047', '#388E3C', '#2E7D32', '#1B5E20']
+    red_tiles = ['#EF9A9A', '#E57373', '#EF5350', '#F44336', '#E53935', '#D32F2F', '#C62828', '#B71C1C']
 
-    # Colors: blue for positive, red for negative
-    colors = ['#007bff' if val > 0 else '#dc3545' for val in top_5_shap_series.values]
+    fig = go.Figure()
 
-    # Labels: add "= value" for categoricals
-    renamed_index = []
-    for feature_name in top_5_shap_series.index:
-        val = input_data[feature_name].iloc[0] if feature_name in input_data.columns else None
-        if isinstance(val, str):
-            renamed_index.append(f"{feature_name} = {val}")
-        else:
-            renamed_index.append(feature_name)
+    for i, val in enumerate(values):
+        feature_name = top_5_shap_series.index[i]
+        feature_val = input_data[feature_name].iloc[0] if feature_name in input_data.columns else ""
+        label = f"<b>{feature_name}</b><br><span style='font-size:10px; color:#A1A1A1;'>{feature_val}</span>"
+        
+        color_scale = green_tiles if val >= 0 else red_tiles
+        
+        # Color intensity calculation
+        max_range = 0.15
+        normalized_val = min(abs(val) / max_range, 1.0)
+        intensity_idx = int((normalized_val ** 0.6) * (len(color_scale) - 1))
+        color = color_scale[intensity_idx]
 
-    # Plot
-    fig = go.Figure(go.Bar(
-        x=top_5_shap_series.values,
-        y=renamed_index,
-        orientation='h',
-        marker_color=colors,
-        text=np.round(top_5_shap_series.values, 3),
-        textposition='auto'
-    ))
+        fig.add_trace(go.Bar(
+            x=[val],
+            y=[label],
+            orientation='h',
+            marker=dict(
+                color=color,
+                # 2. SOLID HATCH ADJUSTMENT:
+                # Increasing 'solidity' and using a denser shape makes it look like a technical hatch
+                # pattern=dict(
+                #     shape="x",         # "x" or "/" for hatching; "x" creates a cross-hatch look
+                #     solidity=0.3,      # Increased from 0.15 to make lines thicker/more visible
+                #     fillmode="overlay",
+                #     fgcolor="#0E1117"  # Matches background to "cut" the color
+                # ),
+                line=dict(color=color, width=0)
+            ),
+            text=f"<b>{val:.3f}</b>",
+            textposition='outside',
+            cliponaxis=False,
+            showlegend=False
+        ))
 
+    # 3. Clean Layout (Removing Grid Lines)
+    # fig.update_layout(
+    #     xaxis_title="<b>Contribution to Score</b>",
+    #     yaxis_title="",
+    #     plot_bgcolor='rgba(0,0,0,0)',
+    #     paper_bgcolor='rgba(0,0,0,0)',
+    #     font=dict(color="#FAFAFA", family="sans-serif"),
+    #     height=450,
+    #     margin=dict(l=10, r=60, t=10, b=10),
+    #     xaxis=dict(
+    #         range=[-0.18, 0.18],
+    #         showgrid=False,           # REMOVES VERTICAL CROSS LINES
+    #         zeroline=True,
+    #         zerolinecolor='white',
+    #         zerolinewidth=2,
+    #         showticklabels=True
+    #     ),
+    #     yaxis=dict(
+    #         autorange="reversed",
+    #         showgrid=False            # REMOVES HORIZONTAL CROSS LINES
+    #     )
+    # )
     fig.update_layout(
-        xaxis_title="SHAP Value (Impact on Prediction)",
-        yaxis_title="Feature",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=400,
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(range=[-0.15, 0.15])   # 🔥 fixed scale across all charts
+    xaxis_title="<b>Contribution to Score</b>",
+    yaxis_title="",
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(color="#FAFAFA", family="sans-serif"),
+    height=450,
+    margin=dict(l=10, r=60, t=10, b=10),
+
+    xaxis=dict(
+        range=[-0.18, 0.18],
+        showgrid=False,
+        zeroline=True,
+        zerolinecolor='white',
+        zerolinewidth=2,
+        showticklabels=True,
+        tickfont=dict(color="white")   # ← x-axis numbers white
+    ),
+
+    yaxis=dict(
+        autorange="reversed",
+        showgrid=False,
+        tickfont=dict(color="white")   # ← feature names white
     )
+    )
+    
     return fig
-
-
-
-
 
 
 
@@ -2533,130 +2802,6 @@ with tab1:
 
 
 
-# # --- Tab 2: Submissions Prioritization using Strike Zone ---
-# with tab2:
-#     st.header("Submissions Prioritization using Strike Zone")
-#     if df_full is not None and 'TIV_Numeric' in df_full.columns:
-#         plot_df = df_full[df_full['TIV_Numeric'] > 0].copy()
-
-#         if not plot_df.empty:
-#             x_data = plot_df['Bind Propensity Score']
-#             y_data = plot_df['TIV_Numeric']
-
-#             min_tiv = int(y_data.min())
-#             max_tiv = int(y_data.max())
-
-#             values_x = st.slider("Select a Bind Propensity range for Strike Zone", 0.2, 1.0, (0.5, 1.0), key="slider_x_final")
-#             values_y = st.slider("Select a Total Insured Value ($) range for Strike Zone", min_tiv, max_tiv, (int(max_tiv * 0.25), max_tiv), step=1000000, key="slider_y_final", format="$%d")
-
-#             fig = go.Figure()
-
-#             # Add the scatter plot with color scale
-#             fig.add_trace(go.Scatter(
-#                 x=x_data, 
-#                 y=y_data, 
-#                 mode='markers',
-#                 marker=dict(
-#                     size=8,
-#                     color=y_data, # Color points by TIV
-#                     colorscale='Viridis', # A nice color scale
-#                     showscale=True,
-#                     colorbar=dict(title="TIV ($)"),
-#                     opacity=0.7
-#                 ),
-#                 text=plot_df.apply(lambda row: f"Broker: {row['Broker Name']}<br>TIV: ${row['TIV_Numeric']:,.0f}", axis=1),
-#                 hoverinfo='text+x+y'
-#             ))
-
-#             # Add the strike zone rectangle on top
-#             fig.add_shape(type="rect",
-#                           x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-#                           line=dict(color="red", width=2),
-#                           fillcolor="rgba(0,0,0,0)", # transparent fill
-#                           layer="above")
-            
-#             fig.update_layout(
-#                 title="Submissions Segmented by Bind Propensity and Total Insured Value",
-#                 xaxis_title="Bind Propensity Score",
-#                 yaxis_title="Total Insured Value ($) (Log Scale)",
-#                 yaxis_type="log",
-#                 xaxis_range=[0.2, 1.0],
-#                 showlegend=False,
-#                 height=600,
-#                 template="plotly_white"
-#             )
-#             st.plotly_chart(fig, use_container_width=True)
-#             st.divider()
-            
-#             st.write("### Simulate the Impact of Submission Prioritization")
-
-#             # Filter to strike-zone
-#             strike_zone_df = plot_df[
-#                 (plot_df['Bind Propensity Score'].between(values_x[0], values_x[1])) &
-#                 (plot_df['TIV_Numeric'].between(values_y[0], values_y[1]))
-#             ].copy()
-
-#             st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
-
-#             # Guard: nothing to show
-#             if strike_zone_df.empty:
-#                 st.warning("No submissions fall inside the Strike Zone. Try expanding the ranges.")
-#             else:
-#                 if st.button("Run Simulation", key="top10_button_final"):
-#                     # Sort by TIV desc, then Bind Propensity desc, and take top 10
-#                     top_df = (
-#                         strike_zone_df
-#                         .sort_values(by=["TIV_Numeric", "Bind Propensity Score"], ascending=[False, False])
-#                         .head(10)
-#                         .copy()
-#                         .reset_index(drop=True)  # Reset the index
-#                     )
-#                     top_df.index = top_df.index + 1  # Start numbering from 1 instead of 0
-
-
-#                     # Choose columns to display
-#                     display_cols = ["Submission ID", "Broker Name", "Industry",
-#                                     "Bind Propensity Score", "TIV_Numeric"]
-#                     display_cols = [c for c in display_cols if c in top_df.columns]
-
-#                     # Nicely rename for UI
-#                     rename_map = {"TIV_Numeric": "Total Insured Value ($)"}
-#                     top_show = top_df[display_cols].rename(columns=rename_map)
-
-#                     st.write("#### Top 10 Submissions (Ranked by TIV and Bind Propensity)")
-#                     st.dataframe(
-#                         top_show.style.format({
-#                             "Bind Propensity Score": "{:.3f}",
-#                             "Total Insured Value ($)": lambda v: f"${v:,.0f}"
-#                         }),
-#                         use_container_width=True
-#                     )
-
-#                     # Optional: show total expected value if present
-#                     if "Expected Value Numeric" in top_df.columns:
-#                         total_expected_value = float(top_df["Expected Value Numeric"].sum())
-#                         st.metric("Total Expected Value (Top 10)",
-#                                 f"${total_expected_value:,.2f}")
-
-#                     # --- Export button (Download as CSV) ---
-#                     # --- Export button (compact style) ---
-#                     csv_data = top_show.to_csv(index=False).encode("utf-8")
-
-#                     col1, col2, col3 = st.columns([4, 2, 4])  # center it nicely
-#                     with col2:
-#                         st.download_button(
-#                             label="⬇️ Download CSV",
-#                             data=csv_data,
-#                             file_name="top10_strike_zone.csv",
-#                             mime="text/csv",
-#                             key="download_top10"
-#                         )
-
-#         else:
-#             st.warning("No data with positive Total Insured Value to display on the chart.")
-#     else:
-#         st.warning("Data for visualization could not be loaded. Please check the CSV file.")
-
 
 
 
@@ -2666,1123 +2811,6 @@ with tab1:
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-
-# with tab2:
-#     st.header("Submissions Prioritization using Strike Zone")
-
-#     @st.cache_data(show_spinner=False)
-#     def load_triaging_csv(path: str):
-#         return pd.read_csv(path)
-
-#     # --- READ THE CSV HERE ---
-#     try:
-#         df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
-#     except Exception as e:
-#         st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
-#         st.stop()
-
-#     # --- guardrails: required columns ---
-#     required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
-#     missing = required_cols - set(df.columns)
-#     if missing:
-#         st.warning(f"CSV is missing columns: {', '.join(missing)}")
-#         st.stop()
-
-#     # Clean + numeric
-#     plot_df = df.copy()
-#     plot_df = plot_df[
-#         plot_df["Bind Propensity Score"].notna()
-#         & plot_df["Expected_Profitability_Ratio"].notna()
-#     ].copy()
-#     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
-#         plot_df["Expected_Profitability_Ratio"], errors="coerce"
-#     )
-#     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
-
-#     if plot_df.empty:
-#         st.warning("No valid rows to plot after cleaning the CSV.")
-#         st.stop()
-
-#     x_data = plot_df["Bind Propensity Score"]
-#     y_data = plot_df["Expected_Profitability_Ratio"]
-
-#     min_y = float(y_data.min())
-#     max_y = float(y_data.max())
-
-#     values_x = st.slider(
-#         "Select a Bind Propensity range for Strike Zone",
-#         0.2, 1.0, (0.5, 1.0), key="slider_x_final"
-#     )
-#     values_y = st.slider(
-#         "Select an Expected Profitability Ratio range for Strike Zone",
-#         float(min_y), float(max_y),
-#         (float(max_y * 0.25), float(max_y)),
-#         key="slider_y_final"
-#     )
-
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(
-#         x=x_data,
-#         y=y_data,
-#         mode="markers",
-#         marker=dict(
-#             size=8,
-#             color=y_data,         # color by Expected_Profitability_Ratio
-#             colorscale="Viridis",
-#             showscale=True,
-#             colorbar=dict(title="Expected Profitability Ratio"),
-#             opacity=0.7
-#         ),
-#         text=plot_df.apply(
-#             lambda r: (
-#                 f"Broker: {r.get('Broker Name', '')}"
-#                 f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
-#             ),
-#             axis=1
-#         ),
-#         hoverinfo="text+x+y"
-#     ))
-
-#     # strike zone box
-#     fig.add_shape(
-#         type="rect",
-#         x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-#         line=dict(color="red", width=2),
-#         fillcolor="rgba(0,0,0,0)",
-#         layer="above"
-#     )
-
-#     fig.update_layout(
-#         title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
-#         xaxis_title="Bind Propensity Score",
-#         yaxis_title="Expected Profitability Ratio",
-#         xaxis_range=[0.2, 1.0],
-#         showlegend=False,
-#         height=600,
-#         template="plotly_white"
-#     )
-#     st.plotly_chart(fig, use_container_width=True)
-#     st.divider()
-
-#     st.write("### Simulate the Impact of Submission Prioritization")
-
-#     # filter to strike zone (using ratio on Y)
-#     strike_zone_df = plot_df[
-#         (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
-#         & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
-#     ].copy()
-
-#     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
-
-#     if strike_zone_df.empty:
-#         st.warning("No submissions fall inside the Strike Zone. Try expanding the ranges.")
-#     else:
-#         if st.button("Run Simulation", key="top10_button_final"):
-#             top_df = (
-#                 strike_zone_df
-#                 .sort_values(
-#                     by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                     ascending=[False, False]
-#                 )
-#                 .head(10)
-#                 .copy()
-#                 .reset_index(drop=True)
-#             )
-#             top_df.index = top_df.index + 1
-
-#             display_cols = [
-#                 "Submission ID", "Broker Name", "Industry",
-#                 "Bind Propensity Score", "Expected_Profitability_Ratio"
-#             ]
-#             display_cols = [c for c in display_cols if c in top_df.columns]
-
-#             rename_map = {"Expected_Profitability_Ratio": "Expected Profitability Ratio"}
-#             top_show = top_df[display_cols].rename(columns=rename_map)
-
-#             st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
-#             st.dataframe(
-#                 top_show.style.format({
-#                     "Bind Propensity Score": "{:.3f}",
-#                     "Expected Profitability Ratio": "{:.3f}"
-#                 }),
-#                 use_container_width=True
-#             )
-
-#             if "Expected Value Numeric" in top_df.columns:
-#                 total_expected_value = float(top_df["Expected Value Numeric"].sum())
-#                 st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
-
-#             csv_data = top_show.to_csv(index=False).encode("utf-8")
-#             c1, c2, c3 = st.columns([4, 2, 4])
-#             with c2:
-#                 st.download_button(
-#                     "⬇️ Download CSV",
-#                     data=csv_data,
-#                     file_name="top10_strike_zone.csv",
-#                     mime="text/csv",
-#                     key="download_top10"
-#                 )
-                            
-
-
-
-
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-import streamlit as st
-##########with epr
-# with tab2:
-#     st.header("Submissions Prioritization using Strike Zone")
-
-#     # ---------- CSS: keep button text on one line & consistent size ----------
-#     st.markdown("""
-#         <style>
-#         div[data-testid="stButton"] > button {
-#             white-space: nowrap;
-#             height: 2.6rem !important;
-#             min-width: 170px !important;
-#             font-weight: 600 !important;
-#             font-size: 15px !important;
-#             padding: 0.4rem 1rem !important;
-#             border-radius: 10px !important;
-#         }
-#         </style>
-#     """, unsafe_allow_html=True)
-
-#     @st.cache_data(show_spinner=False)
-#     def load_triaging_csv(path: str):
-#         return pd.read_csv(path)
-
-#     # ---------- READ CSV ----------
-#     try:
-#         df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
-#     except Exception as e:
-#         st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
-#         st.stop()
-
-#     # ---------- Guardrails ----------
-#     required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
-#     missing = required_cols - set(df.columns)
-#     if missing:
-#         st.warning(f"CSV is missing columns: {', '.join(missing)}")
-#         st.stop()
-
-#     # ---------- Clean + numeric ----------
-#     plot_df = df.copy()
-#     plot_df = plot_df[
-#         plot_df["Bind Propensity Score"].notna()
-#         & plot_df["Expected_Profitability_Ratio"].notna()
-#     ].copy()
-#     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
-#         plot_df["Expected_Profitability_Ratio"], errors="coerce"
-#     )
-#     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
-#     if plot_df.empty:
-#         st.warning("No valid rows to plot after cleaning the CSV.")
-#         st.stop()
-
-#     x_data = plot_df["Bind Propensity Score"]
-#     y_data = plot_df["Expected_Profitability_Ratio"]
-#     min_y = float(y_data.min())
-#     max_y = float(y_data.max())
-
-#     # ---------- Sliders (strike zone) ----------
-#     values_x = st.slider(
-#         "Select a Bind Propensity range for Strike Zone",
-#         0.2, 1.0, (0.5, 1.0), key="slider_x_final"
-#     )
-#     values_y = st.slider(
-#         "Select an Expected Profitability Ratio range for Strike Zone",
-#         float(min_y), float(max_y),
-#         (float(max_y * 0.25), float(max_y)),
-#         key="slider_y_final"
-#     )
-
-#     # ---------- Scatter + strike box ----------
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(
-#         x=x_data,
-#         y=y_data,
-#         mode="markers",
-#         marker=dict(
-#             size=8,
-#             color=y_data,
-#             colorscale="Viridis",
-#             showscale=True,
-#             colorbar=dict(title="Expected Profitability Ratio"),
-#             opacity=0.7
-#         ),
-#         text=plot_df.apply(
-#             lambda r: (
-#                 f"Broker: {r.get('Broker Name', '')}"
-#                 f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
-#             ),
-#             axis=1
-#         ),
-#         hoverinfo="text+x+y"
-#     ))
-#     fig.add_shape(
-#         type="rect",
-#         x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-#         line=dict(color="red", width=2),
-#         fillcolor="rgba(0,0,0,0)",
-#         layer="above"
-#     )
-#     fig.update_layout(
-#         title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
-#         xaxis_title="Bind Propensity Score",
-#         yaxis_title="Expected Profitability Ratio",
-#         xaxis_range=[0.2, 1.0],
-#         showlegend=False,
-#         height=600,
-#         template="plotly_white"
-#     )
-#     st.plotly_chart(fig, use_container_width=True)
-#     st.divider()
-
-#     # ---------- Strike zone slice (recomputed each run) ----------
-#     strike_zone_df = plot_df[
-#         (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
-#         & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
-#     ].copy()
-
-#     st.write("### Simulate the Impact of Submission Prioritization")
-#     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
-
-#     # ---------- Button row: Run left, Metrics right ----------
-#     left_btn_col, spacer, right_btn_col = st.columns([1, 6, 1])
-#     with left_btn_col:
-#         run_clicked = st.button("Run Simulation", key="run_simulation_btn")
-#     with right_btn_col:
-#         show_metrics_clicked = st.button("Show Metrics", key="show_zone_metrics_btn")
-
-#     # ---------- Run Simulation (Top-10 in strike zone) ----------
-#     if run_clicked and not strike_zone_df.empty:
-#         strike_top10 = (
-#             strike_zone_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                          ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         display_cols = [
-#             "Submission ID", "Broker Name", "Industry",
-#             "Bind Propensity Score", "Expected_Profitability_Ratio"
-#         ]
-#         display_cols = [c for c in display_cols if c in strike_top10.columns]
-#         top_show = strike_top10[display_cols].rename(columns={
-#             "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#         })
-
-#         st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
-#         st.dataframe(
-#             top_show.style.format({
-#                 "Bind Propensity Score": "{:.1%}",
-#                 "Expected Profitability Ratio": "{:.1%}"
-#             }),
-#             use_container_width=True
-#         )
-
-#         if "Expected Value Numeric" in strike_top10.columns:
-#             total_expected_value = float(strike_top10["Expected Value Numeric"].sum())
-#             st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
-
-#         st.download_button(
-#             "⬇️ Download CSV",
-#             data=top_show.to_csv(index=False).encode("utf-8"),
-#             file_name="top10_strike_zone.csv",
-#             mime="text/csv",
-#             key="download_top10"
-#         )
-
-#         # Persist in session so Metrics can reuse the same top10 (optional)
-#         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
-
-#     # ---------- Show Metrics (Top-10 Strike vs Top-10 Non-Strike) ----------
-#     if show_metrics_clicked:
-#         # helpers
-#         def pct(x):
-#             return "—" if x is None or np.isnan(x) else f"{x*100:.1f}%"
-
-#         def uplift_pct(avg_in, avg_out):
-#             if avg_out is None or np.isnan(avg_out) or avg_out == 0:
-#                 return None
-#             return (avg_in - avg_out) / avg_out  # relative uplift
-
-#         # Top-10 in strike zone (use cached if available; else recompute)
-#         if "strike_top10_cached" in st.session_state:
-#             strike_idx = st.session_state["strike_top10_cached"]
-#             strike_top10 = plot_df.loc[strike_idx].copy()
-#         else:
-#             strike_top10 = (
-#                 strike_zone_df
-#                 .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                              ascending=[False, False])
-#                 .head(10)
-#                 .copy()
-#             )
-
-#         # Top-10 in non-strike zone
-#         non_strike_df = plot_df.drop(strike_zone_df.index) if not strike_zone_df.empty else plot_df
-#         non_strike_top10 = (
-#             non_strike_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                          ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         # Averages (Bind Propensity)
-#         avg_bp_in  = float(strike_top10["Bind Propensity Score"].mean()) if not strike_top10.empty else np.nan
-#         avg_bp_out = float(non_strike_top10["Bind Propensity Score"].mean()) if not non_strike_top10.empty else np.nan
-#         upl_bp     = uplift_pct(avg_bp_in, avg_bp_out)
-
-#         # Averages (EPR)
-#         avg_epr_in  = float(strike_top10["Expected_Profitability_Ratio"].mean()) if not strike_top10.empty else np.nan
-#         avg_epr_out = float(non_strike_top10["Expected_Profitability_Ratio"].mean()) if not non_strike_top10.empty else np.nan
-#         upl_epr     = uplift_pct(avg_epr_in, avg_epr_out)
-
-#         # ----- Metrics: Bind Propensity -----
-#         st.markdown("### 📊 Bind Propensity — Top 10 (Strike Zone) vs Top 10 (Non-Strike)")
-#         c1, c2, c3 = st.columns(3)
-#         c1.metric("Avg (Top 10 in Strike Zone)", pct(avg_bp_in))
-#         c2.metric("Avg (Top 10 in Non-Strike)",  pct(avg_bp_out))
-#         c3.metric("Uplift (Relative)",            pct(upl_bp))
-
-#         st.divider()
-
-#         # ----- Metrics: Expected Profitability Ratio -----
-#         st.markdown("### 💹 Expected Profitability Ratio — Top 10 (Strike Zone) vs Top 10 (Non-Strike)")
-#         e1, e2, e3 = st.columns(3)
-#         e1.metric("Avg (Top 10 in Strike Zone)", pct(avg_epr_in))
-#         e2.metric("Avg (Top 10 in Non-Strike)",  pct(avg_epr_out))
-#         e3.metric("Uplift (Relative)",            pct(upl_epr))
-#         # e3.metric("Uplift (pts)", f"{(avg_epr_in - avg_epr_out)*100:+.1f} pts")
-
-
-#         st.divider()
-
-#         # ----- Two Top-10 tables side-by-side -----
-#         cols_keep = [c for c in ["Submission ID", "Broker Name",
-#                                  "Bind Propensity Score", "Expected_Profitability_Ratio"]
-#                      if c in strike_top10.columns]
-
-#         left_tbl, right_tbl = st.columns(2)
-
-#         with left_tbl:
-#             st.write("#### 🏅 Top 10 — Strike Zone")
-#             st.dataframe(
-#                 strike_top10[cols_keep].rename(columns={
-#                     "Bind Propensity Score": "Bind Propensity",
-#                     "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#                 }).style.format({
-#                     "Bind Propensity": "{:.1%}",
-#                     "Expected Profitability Ratio": "{:.1%}"
-#                 }),
-#                 use_container_width=True
-#             )
-
-#         with right_tbl:
-#             st.write("#### 📄 Top 10 — Non-Strike Zone")
-#             st.dataframe(
-#                 non_strike_top10[cols_keep].rename(columns={
-#                     "Bind Propensity Score": "Bind Propensity",
-#                     "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#                 }).style.format({
-#                     "Bind Propensity": "{:.1%}",
-#                     "Expected Profitability Ratio": "{:.1%}"
-#                 }),
-#                 use_container_width=True
-#             )
-
-
-
-
-
-# with tab2:
-#     st.header("Submissions Prioritization using Strike Zone")
-
-#     # ---------- CSS: keep button text on one line & consistent size ----------
-#     st.markdown("""
-#         <style>
-#         div[data-testid="stButton"] > button {
-#             white-space: nowrap;
-#             height: 2.6rem !important;
-#             min-width: 170px !important;
-#             font-weight: 600 !important;
-#             font-size: 15px !important;
-#             padding: 0.4rem 1rem !important;
-#             border-radius: 10px !important;
-#         }
-#         </style>
-#     """, unsafe_allow_html=True)
-
-#     @st.cache_data(show_spinner=False)
-#     def load_triaging_csv(path: str):
-#         return pd.read_csv(path)
-
-#     # ---------- READ CSV ----------
-#     try:
-#         df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
-#     except Exception as e:
-#         st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
-#         st.stop()
-
-#     # ---------- Guardrails ----------
-#     required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
-#     missing = required_cols - set(df.columns)
-#     if missing:
-#         st.warning(f"CSV is missing columns: {', '.join(missing)}")
-#         st.stop()
-
-#     # ---------- Clean + numeric ----------
-#     plot_df = df.copy()
-#     plot_df = plot_df[
-#         plot_df["Bind Propensity Score"].notna()
-#         & plot_df["Expected_Profitability_Ratio"].notna()
-#     ].copy()
-#     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
-#         plot_df["Expected_Profitability_Ratio"], errors="coerce"
-#     )
-#     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
-#     if plot_df.empty:
-#         st.warning("No valid rows to plot after cleaning the CSV.")
-#         st.stop()
-
-#     x_data = plot_df["Bind Propensity Score"]
-#     y_data = plot_df["Expected_Profitability_Ratio"]
-#     min_y = float(y_data.min())
-#     max_y = float(y_data.max())
-
-#     # ---------- Sliders (strike zone) ----------
-#     values_x = st.slider(
-#         "Select a Bind Propensity range for Strike Zone",
-#         0.2, 1.0, (0.5, 1.0), key="slider_x_final"
-#     )
-#     values_y = st.slider(
-#         "Select an Expected Profitability Ratio range for Strike Zone",
-#         float(min_y), float(max_y),
-#         (float(max_y * 0.25), float(max_y)),
-#         key="slider_y_final"
-#     )
-
-#     # ---------- Scatter + strike box ----------
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(
-#         x=x_data,
-#         y=y_data,
-#         mode="markers",
-#         marker=dict(
-#             size=8,
-#             color=y_data,
-#             colorscale="Viridis",
-#             showscale=True,
-#             colorbar=dict(title="Expected Profitability Ratio"),
-#             opacity=0.7
-#         ),
-#         text=plot_df.apply(
-#             lambda r: (
-#                 f"Broker: {r.get('Broker Name', '')}"
-#                 f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
-#             ),
-#             axis=1
-#         ),
-#         hoverinfo="text+x+y"
-#     ))
-#     fig.add_shape(
-#         type="rect",
-#         x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-#         line=dict(color="red", width=2),
-#         fillcolor="rgba(0,0,0,0)",
-#         layer="above"
-#     )
-#     fig.update_layout(
-#         title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
-#         xaxis_title="Bind Propensity Score",
-#         yaxis_title="Expected Profitability Ratio",
-#         xaxis_range=[0.2, 1.0],
-#         showlegend=False,
-#         height=600,
-#         template="plotly_white"
-#     )
-#     st.plotly_chart(fig, use_container_width=True)
-#     st.divider()
-
-#     # ---------- Strike zone slice (recomputed each run) ----------
-#     strike_zone_df = plot_df[
-#         (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
-#         & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
-#     ].copy()
-
-#     st.write("### Simulate the Impact of Submission Prioritization")
-#     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
-
-#     # ---------- Button row: Run left, Metrics right ----------
-#     left_btn_col, spacer, right_btn_col = st.columns([1, 6, 1])
-#     with left_btn_col:
-#         run_clicked = st.button("Run Simulation", key="run_simulation_btn")
-#     with right_btn_col:
-#         show_metrics_clicked = st.button("Show Metrics", key="show_zone_metrics_btn")
-
-#     # ---------- Run Simulation (Top-10 in strike zone) ----------
-#     if run_clicked and not strike_zone_df.empty:
-#         strike_top10 = (
-#             strike_zone_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                          ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         display_cols = [
-#             "Submission ID", "Broker Name", "Industry",
-#             "Bind Propensity Score", "Expected_Profitability_Ratio"
-#         ]
-#         display_cols = [c for c in display_cols if c in strike_top10.columns]
-#         top_show = strike_top10[display_cols].rename(columns={
-#             "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#         })
-
-#         st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
-#         st.dataframe(
-#             top_show.style.format({
-#                 "Bind Propensity Score": "{:.1%}",
-#                 "Expected Profitability Ratio": "{:.1%}"
-#             }),
-#             use_container_width=True
-#         )
-
-#         if "Expected Value Numeric" in strike_top10.columns:
-#             total_expected_value = float(strike_top10["Expected Value Numeric"].sum())
-#             st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
-
-#         st.download_button(
-#             "⬇️ Download CSV",
-#             data=top_show.to_csv(index=False).encode("utf-8"),
-#             file_name="top10_strike_zone.csv",
-#             mime="text/csv",
-#             key="download_top10"
-#         )
-
-#         # Persist in session so Metrics can reuse the same top10 (optional)
-#         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
-
-#     # ---------- Show Metrics (Top-10 Strike vs Top-10 Non-Strike) ----------
-#     if show_metrics_clicked:
-#         # ---------- Helper functions ----------
-#         def pct(x):
-#             return "—" if x is None or np.isnan(x) else f"{x*100:.1f}%"
-
-#         def uplift_pct(avg_in, avg_out):
-#             if avg_out is None or np.isnan(avg_out) or avg_out == 0:
-#                 return None
-#             return (avg_in - avg_out) / avg_out  # relative uplift
-
-#         # --- Maintain session consistency for slider state ---
-#         signature = (tuple(values_x), tuple(values_y))
-#         if st.session_state.get("metrics_signature") != signature:
-#             st.session_state.pop("strike_top10_indices", None)
-#             st.session_state["metrics_signature"] = signature
-
-#         # ---------- Recompute Top 10 Strike Zone ----------
-#         strike_zone_df = plot_df[
-#             (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
-#             & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
-#         ].copy()
-
-#         if "strike_top10_indices" in st.session_state:
-#             strike_top10 = plot_df.loc[st.session_state["strike_top10_indices"]].copy()
-#         else:
-#             strike_top10 = (
-#                 strike_zone_df
-#                 .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                             ascending=[False, False])
-#                 .head(10)
-#                 .copy()
-#             )
-#             st.session_state["strike_top10_indices"] = strike_top10.index.tolist()
-
-#         # ---------- Non-Strike Zone (Exclude Strike Rows) ----------
-#         non_strike_df = plot_df.drop(st.session_state["strike_top10_indices"], errors="ignore")
-#         non_strike_top10 = (
-#             non_strike_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                         ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         # ---------- Metrics: Bind Propensity ----------
-#         avg_bp_in  = float(strike_top10["Bind Propensity Score"].mean()) if not strike_top10.empty else np.nan
-#         avg_bp_out = float(non_strike_top10["Bind Propensity Score"].mean()) if not non_strike_top10.empty else np.nan
-#         upl_bp     = uplift_pct(avg_bp_in, avg_bp_out)
-
-#         st.markdown("### 📊 Bind Propensity — Top 10 (Strike Zone) vs Top 10 (Non-Strike)")
-#         c1, c2, c3 = st.columns(3)
-#         c1.metric("Avg (Top 10 in Strike Zone)", pct(avg_bp_in))
-#         c2.metric("Avg (Top 10 in Non-Strike)",  pct(avg_bp_out))
-#         c3.metric("Uplift (Relative)",            pct(upl_bp))
-
-#         st.divider()
-
-#         # ---------- Metrics: Expected Profit ($) ----------
-#         profit_col = "Expected_Profit_Dollars_With_Bind"
-#         if profit_col in plot_df.columns:
-#             avg_profit_in  = float(strike_top10[profit_col].mean()) if not strike_top10.empty else np.nan
-#             avg_profit_out = float(non_strike_top10[profit_col].mean()) if not non_strike_top10.empty else np.nan
-#             upl_profit_rel = uplift_pct(avg_profit_in, avg_profit_out)
-#             upl_profit_abs = (avg_profit_in - avg_profit_out) if not (np.isnan(avg_profit_in) or np.isnan(avg_profit_out)) else None
-
-#             # cap uplift to 100%
-#             if upl_profit_rel is not None:
-#                 upl_profit_rel = min(upl_profit_rel, 1.0)
-
-#             st.markdown("### 💹 Expected Profit ($) — Top 10 (Strike Zone) vs Top 10 (Non-Strike)")
-#             e1, e2, e3 = st.columns(3)
-#             e1.metric("Avg (Top 10 in Strike Zone)", f"${avg_profit_in:,.0f}")
-#             e2.metric("Avg (Top 10 in Non-Strike)",  f"${avg_profit_out:,.0f}")
-#             if upl_profit_abs is not None and upl_profit_rel is not None:
-#                 # e3.metric("Uplift (Relative)", f"+${upl_profit_abs:,.0f}", f"{upl_profit_rel*100:.1f}%")
-#                 e3.metric("Uplift (Relative)", f"{upl_profit_rel*100:.1f}%", delta_color="normal")
-
-#             else:
-#                 e3.metric("Uplift (Strike − Non-Strike)", "—", "—")
-
-#             st.divider()
-
-#         # ---------- Tables Side-by-Side ----------
-#         cols_keep = [c for c in ["Submission ID", "Broker Name",
-#                                 "Bind Propensity Score", profit_col]
-#                     if c in strike_top10.columns]
-
-#         left_tbl, right_tbl = st.columns(2)
-#         with left_tbl:
-#             st.write("#### 🏅 Top 10 — Strike Zone")
-#             st.dataframe(
-#                 strike_top10[cols_keep].rename(columns={
-#                     "Bind Propensity Score": "Bind Propensity",
-#                     profit_col: "Expected Profit ($)"
-#                 }).style.format({
-#                     "Bind Propensity": "{:.1%}",
-#                     "Expected Profit ($)": "${:,.0f}"
-#                 }),
-#                 use_container_width=True
-#             )
-#         with right_tbl:
-#             st.write("#### 📄 Top 10 — Non-Strike Zone")
-#             st.dataframe(
-#                 non_strike_top10[cols_keep].rename(columns={
-#                     "Bind Propensity Score": "Bind Propensity",
-#                     profit_col: "Expected Profit ($)"
-#                 }).style.format({
-#                     "Bind Propensity": "{:.1%}",
-#                     "Expected Profit ($)": "${:,.0f}"
-#                 }),
-#                 use_container_width=True
-#             )
-
-
-
-
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import streamlit as st
-#############current working version with out normalization
-# with tab2:
-#     st.header("Submissions Prioritization using Strike Zone")
-
-#     # ---------- CSS: buttons (1-line text, consistent size) ----------
-#     st.markdown("""
-#         <style>
-#         div[data-testid="stButton"] > button {
-#             white-space: nowrap;
-#             height: 2.6rem !important;
-#             min-width: 170px !important;
-#             font-weight: 600 !important;
-#             font-size: 15px !important;
-#             padding: 0.4rem 1rem !important;
-#             border-radius: 10px !important;
-#         }
-#         /* KPI cards */
-#         .kpi-wrap {display:flex; gap:14px; flex-wrap:wrap;}
-#         .kpi-card {
-#           flex:1 1 260px; padding:16px 18px; border-radius:14px;
-#           background: linear-gradient(135deg, #f7f9ff 0%, #eef2ff 100%);
-#           border: 1px solid #e6ebff;
-#           box-shadow: 0 2px 10px rgba(30, 64, 175, .06);
-#         }
-#         .kpi-title {font-size:13px; color:#475569; margin-bottom:6px; letter-spacing:.2px;}
-#         .kpi-value {font-size:34px; font-weight:700; color:#0f172a; line-height:1.15;}
-#         .kpi-sub {font-size:12px; color:#6b7280; margin-top:4px;}
-#         .kpi-badge {
-#           display:inline-flex; align-items:center; gap:6px;
-#           font-size:12px; font-weight:600; padding:4px 8px; border-radius:999px;
-#         }
-#         .kpi-badge.up {color:#065f46; background:#ecfdf5; border:1px solid #34d399;}
-#         .kpi-badge.down {color:#7f1d1d; background:#fef2f2; border:1px solid #fca5a5;}
-#         .kpi-dot {width:8px; height:8px; border-radius:50%;}
-#         .dot-strike {background:#2563eb;}
-#         .dot-nonstrike {background:#a1a1aa;}
-#         .section-h {
-#           display:flex; align-items:center; gap:10px; margin:8px 0 14px;
-#           font-size:22px; font-weight:800; color:#0f172a;
-#         }
-#         .section-h .emoji {font-size:20px;}
-#         </style>
-#     """, unsafe_allow_html=True)
-
-#     # ---------- Helpers ----------
-#     @st.cache_data(show_spinner=False)
-#     def load_triaging_csv(path: str):
-#         return pd.read_csv(path)
-
-#     def _fmt_pct(x):
-#         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
-#         return f"{x*100:.1f}%"
-
-#     def _fmt_money(x):
-#         if x is None or (isinstance(x, float) and np.isnan(x)): return "—"
-#         return f"${x:,.0f}"
-
-#     def _rel_uplift(a_in, a_out):
-#         if a_out is None or (isinstance(a_out, float) and (np.isnan(a_out) or a_out == 0)):
-#             return None
-#         return (a_in - a_out) / a_out
-
-#     # ---------- READ CSV ----------
-#     try:
-#         df = load_triaging_csv("Triaging_Data_Comprehensive.csv")
-#     except Exception as e:
-#         st.error(f"Could not read Triaging_Data_Comprehensive.csv — {e}")
-#         st.stop()
-
-#     # ---------- Guardrails ----------
-#     required_cols = {"Bind Propensity Score", "Expected_Profitability_Ratio"}
-#     missing = required_cols - set(df.columns)
-#     if missing:
-#         st.warning(f"CSV is missing columns: {', '.join(missing)}")
-#         st.stop()
-
-#     # ---------- Clean + numeric ----------
-#     plot_df = df.copy()
-#     plot_df = plot_df[
-#         plot_df["Bind Propensity Score"].notna()
-#         & plot_df["Expected_Profitability_Ratio"].notna()
-#     ].copy()
-#     plot_df["Expected_Profitability_Ratio"] = pd.to_numeric(
-#         plot_df["Expected_Profitability_Ratio"], errors="coerce"
-#     )
-#     # Profit dollars is optional; only used if present
-#     if "Expected_Profit_Dollars_With_Bind" in plot_df.columns:
-#         plot_df["Expected_Profit_Dollars_With_Bind"] = pd.to_numeric(
-#             plot_df["Expected_Profit_Dollars_With_Bind"], errors="coerce"
-#         )
-
-#     plot_df = plot_df.dropna(subset=["Expected_Profitability_Ratio"])
-#     if plot_df.empty:
-#         st.warning("No valid rows to plot after cleaning the CSV.")
-#         st.stop()
-
-#     x_data = plot_df["Bind Propensity Score"]
-#     y_data = plot_df["Expected_Profitability_Ratio"]
-#     min_y = float(y_data.min())
-#     max_y = float(y_data.max())
-
-#     # ---------- Sliders (strike zone) ----------
-#     values_x = st.slider(
-#         "Select a Bind Propensity range for Strike Zone",
-#         0.2, 1.0, (0.5, 1.0), key="slider_x_final"
-#     )
-#     values_y = st.slider(
-#         "Select an Expected Profitability Ratio range for Strike Zone",
-#         float(min_y), float(max_y),
-#         (float(max_y * 0.25), float(max_y)),
-#         key="slider_y_final"
-#     )
-
-#     # ---------- Scatter + strike box ----------
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(
-#         x=x_data,
-#         y=y_data,
-#         mode="markers",
-#         marker=dict(
-#             size=8,
-#             color=y_data,
-#             colorscale="Viridis",
-#             showscale=True,
-#             colorbar=dict(title="Expected Profitability Ratio"),
-#             opacity=0.7
-#         ),
-#         text=plot_df.apply(
-#             lambda r: (
-#                 f"Broker: {r.get('Broker Name', '')}"
-#                 f"<br>Expected Profitability Ratio: {r['Expected_Profitability_Ratio']:.3f}"
-#             ),
-#             axis=1
-#         ),
-#         hoverinfo="text+x+y"
-#     ))
-#     fig.add_shape(
-#         type="rect",
-#         x0=values_x[0], x1=values_x[1], y0=values_y[0], y1=values_y[1],
-#         line=dict(color="red", width=2),
-#         fillcolor="rgba(0,0,0,0)",
-#         layer="above"
-#     )
-#     fig.update_layout(
-#         title="Submissions Segmented by Bind Propensity and Expected Profitability Ratio",
-#         xaxis_title="Bind Propensity Score",
-#         yaxis_title="Expected Profitability Ratio",
-#         xaxis_range=[0.2, 1.0],
-#         showlegend=False,
-#         height=600,
-#         template="plotly_white"
-#     )
-#     st.plotly_chart(fig, use_container_width=True)
-#     st.divider()
-
-#     # ---------- Strike zone slice ----------
-#     strike_zone_df = plot_df[
-#         (plot_df["Bind Propensity Score"].between(values_x[0], values_x[1]))
-#         & (plot_df["Expected_Profitability_Ratio"].between(values_y[0], values_y[1]))
-#     ].copy()
-
-#     st.write("### Simulate the Impact of Submission Prioritization")
-#     st.write(f"There are **{len(strike_zone_df)}** submissions in the selected Strike Zone.")
-
-#     # ---------- Button row: Run (left), Metrics (right) ----------
-#     left_btn_col, spacer, right_btn_col = st.columns([1, 6, 1])
-#     with left_btn_col:
-#         run_clicked = st.button("Run Simulation", key="run_simulation_btn")
-#     with right_btn_col:
-#         show_metrics_clicked = st.button("Show Metrics", key="show_zone_metrics_btn")
-
-#     # ---------- Run Simulation (Top-10 in strike zone) ----------
-#     if run_clicked and not strike_zone_df.empty:
-#         strike_top10 = (
-#             strike_zone_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                          ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         display_cols = [
-#             "Submission ID", "Broker Name", "Industry",
-#             "Bind Propensity Score", "Expected_Profitability_Ratio"
-#         ]
-#         display_cols = [c for c in display_cols if c in strike_top10.columns]
-#         top_show = strike_top10[display_cols].rename(columns={
-#             "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#         })
-
-#         st.write("#### Top 10 Submissions (Ranked by Expected Profitability Ratio and Bind Propensity)")
-#         st.dataframe(
-#             top_show.style.format({
-#                 "Bind Propensity Score": "{:.1%}",
-#                 "Expected Profitability Ratio": "{:.1%}"
-#             }),
-#             use_container_width=True
-#         )
-
-#         if "Expected Value Numeric" in strike_top10.columns:
-#             total_expected_value = float(strike_top10["Expected Value Numeric"].sum())
-#             st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
-
-#         st.download_button(
-#             "⬇️ Download CSV",
-#             data=top_show.to_csv(index=False).encode("utf-8"),
-#             file_name="top10_strike_zone.csv",
-#             mime="text/csv",
-#             key="download_top10"
-#         )
-
-#         # Persist indices so Metrics can reuse exactly these rows
-#         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
-
-#     # ---------- Show Metrics (Top-10 Strike vs Top-10 Non-Strike) ----------
-#     if show_metrics_clicked:
-#         # Build Top-10 strike from session cache if available
-#         if "strike_top10_cached" in st.session_state:
-#             strike_idx = st.session_state["strike_top10_cached"]
-#             strike_top10 = plot_df.loc[strike_idx].copy()
-#         else:
-#             strike_top10 = (
-#                 strike_zone_df
-#                 .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                              ascending=[False, False])
-#                 .head(10)
-#                 .copy()
-#             )
-
-#         # Top-10 in non-strike: choose from outside the strike zone
-#         non_strike_df = plot_df.drop(strike_zone_df.index) if not strike_zone_df.empty else plot_df
-#         non_strike_top10 = (
-#             non_strike_df
-#             .sort_values(by=["Expected_Profitability_Ratio", "Bind Propensity Score"],
-#                          ascending=[False, False])
-#             .head(10)
-#             .copy()
-#         )
-
-#         # ---------- Averages: Bind Propensity ----------
-#         avg_bp_in  = float(strike_top10["Bind Propensity Score"].mean()) if not strike_top10.empty else np.nan
-#         avg_bp_out = float(non_strike_top10["Bind Propensity Score"].mean()) if not non_strike_top10.empty else np.nan
-#         upl_bp     = _rel_uplift(avg_bp_in, avg_bp_out)
-#         upl_bp_capped = None if upl_bp is None else max(-1.0, min(1.0, upl_bp))
-#         bp_badge_cls  = "up" if (upl_bp_capped or 0) >= 0 else "down"
-#         bp_badge_txt  = _fmt_pct(upl_bp_capped)
-
-#         # ---------- KPI section: Bind Propensity ----------
-#         st.markdown('<div class="section-h"><span class="emoji">📊</span>Bind Propensity — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
-#         bp_col1, bp_col2 = st.columns([2, 1])
-#         with bp_col1:
-#             st.markdown(
-#                 f"""
-#                 <div class="kpi-wrap">
-#                   <div class="kpi-card">
-#                     <div class="kpi-title"><span class="kpi-dot dot-strike"></span> Avg (Top 10 in Strike Zone)</div>
-#                     <div class="kpi-value">{_fmt_pct(avg_bp_in)}</div>
-#                     <div class="kpi-sub">Higher is better</div>
-#                   </div>
-#                   <div class="kpi-card">
-#                     <div class="kpi-title"><span class="kpi-dot dot-nonstrike"></span> Avg (Top 10 in Non-Strike)</div>
-#                     <div class="kpi-value">{_fmt_pct(avg_bp_out)}</div>
-#                     <div class="kpi-sub">Comparison baseline</div>
-#                   </div>
-#                   <div class="kpi-card">
-#                     <div class="kpi-title">Uplift (Relative)</div>
-#                     <div class="kpi-value">{bp_badge_txt}</div>
-#                     <div class="kpi-sub"><span class="kpi-badge {bp_badge_cls}">{'▲' if (upl_bp_capped or 0) >= 0 else '▼'} {bp_badge_txt}</span></div>
-#                   </div>
-#                 </div>
-#                 """,
-#                 unsafe_allow_html=True
-#             )
-#         with bp_col2:
-#             fig_bp = go.Figure()
-#             fig_bp.add_bar(
-#                 x=[avg_bp_in or 0, avg_bp_out or 0],
-#                 y=["Strike", "Non-Strike"],
-#                 orientation="h",
-#                 text=[_fmt_pct(avg_bp_in), _fmt_pct(avg_bp_out)],
-#                 textposition="auto",
-#                 marker_color=["#2563eb", "#a1a1aa"],
-#                 hovertemplate="%{y}: %{x:.2%}<extra></extra>",
-#             )
-#             fig_bp.update_layout(
-#                 height=160, margin=dict(l=10, r=10, t=10, b=10),
-#                 xaxis=dict(range=[0, 1], tickformat=".0%"),
-#                 yaxis=dict(showgrid=False),
-#                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-#             )
-#             st.plotly_chart(fig_bp, use_container_width=True, config={"displayModeBar": False})
-
-#         st.divider()
-
-#         # ---------- Averages: Expected Profit ($) ----------
-#         if "Expected_Profit_Dollars_With_Bind" in strike_top10.columns and "Expected_Profit_Dollars_With_Bind" in non_strike_top10.columns:
-#             avg_profit_in  = float(strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not strike_top10.empty else np.nan
-#             avg_profit_out = float(non_strike_top10["Expected_Profit_Dollars_With_Bind"].mean()) if not non_strike_top10.empty else np.nan
-#             upl_profit     = _rel_uplift(avg_profit_in, avg_profit_out)
-#             upl_profit_capped = None if upl_profit is None else max(-1.0, min(1.0, upl_profit))
-#             p_badge_cls  = "up" if (upl_profit_capped or 0) >= 0 else "down"
-#             p_badge_txt  = _fmt_pct(upl_profit_capped)
-
-#             # ---------- KPI section: Expected Profit ($) ----------
-#             st.markdown('<div class="section-h"><span class="emoji">💹</span>Expected Profit ($) — Top 10 (Strike Zone) vs Top 10 (Non-Strike)</div>', unsafe_allow_html=True)
-#             p_col1, p_col2 = st.columns([2, 1])
-#             with p_col1:
-#                 st.markdown(
-#                     f"""
-#                     <div class="kpi-wrap">
-#                       <div class="kpi-card">
-#                         <div class="kpi-title"><span class="kpi-dot dot-strike"></span> Avg (Top 10 in Strike Zone)</div>
-#                         <div class="kpi-value">{_fmt_money(avg_profit_in)}</div>
-#                         <div class="kpi-sub">Expected Profit Dollars With Bind</div>
-#                       </div>
-#                       <div class="kpi-card">
-#                         <div class="kpi-title"><span class="kpi-dot dot-nonstrike"></span> Avg (Top 10 in Non-Strike)</div>
-#                         <div class="kpi-value">{_fmt_money(avg_profit_out)}</div>
-#                         <div class="kpi-sub">Comparison baseline</div>
-#                       </div>
-#                       <div class="kpi-card">
-#                         <div class="kpi-title">Uplift (Relative)</div>
-#                         <div class="kpi-value">{p_badge_txt}</div>
-#                         <div class="kpi-sub"><span class="kpi-badge {p_badge_cls}">{'▲' if (upl_profit_capped or 0) >= 0 else '▼'} {p_badge_txt}</span></div>
-#                       </div>
-#                     </div>
-#                     """,
-#                     unsafe_allow_html=True
-#                 )
-#             with p_col2:
-#                 fig_pr = go.Figure()
-#                 fig_pr.add_bar(
-#                     x=[avg_profit_in or 0, avg_profit_out or 0],
-#                     y=["Strike", "Non-Strike"],
-#                     orientation="h",
-#                     text=[_fmt_money(avg_profit_in), _fmt_money(avg_profit_out)],
-#                     textposition="auto",
-#                     marker_color=["#2563eb", "#a1a1aa"],
-#                     hovertemplate="%{y}: $%{x:,.0f}<extra></extra>",
-#                 )
-#                 max_profit = max((avg_profit_in or 0), (avg_profit_out or 0), 1)
-#                 fig_pr.update_layout(
-#                     height=160, margin=dict(l=10, r=10, t=10, b=10),
-#                     xaxis=dict(range=[0, max_profit*1.15], tickprefix="$", separatethousands=True),
-#                     yaxis=dict(showgrid=False),
-#                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-#                 )
-#                 st.plotly_chart(fig_pr, use_container_width=True, config={"displayModeBar": False})
-
-#             st.divider()
-
-#         # ---------- Two Top-10 tables side-by-side ----------
-#         # Show Expected Profit ($) instead of EPR if available; otherwise fallback to EPR
-#         profit_col = "Expected_Profit_Dollars_With_Bind"
-#         use_profit = profit_col in strike_top10.columns and profit_col in non_strike_top10.columns
-
-#         cols_keep = ["Submission ID", "Broker Name", "Bind Propensity Score"]
-#         if use_profit:
-#             cols_keep.append(profit_col)
-#         elif "Expected_Profitability_Ratio" in strike_top10.columns:
-#             cols_keep.append("Expected_Profitability_Ratio")
-
-#         left_tbl, right_tbl = st.columns(2)
-
-#         with left_tbl:
-#             st.write("#### 🏅 Top 10 — Strike Zone")
-#             df_show = strike_top10[[c for c in cols_keep if c in strike_top10.columns]].rename(columns={
-#                 "Bind Propensity Score": "Bind Propensity",
-#                 profit_col: "Expected Profit ($)",
-#                 "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#             })
-#             sty = {"Bind Propensity": "{:.1%}"}
-#             if "Expected Profit ($)" in df_show.columns:
-#                 sty["Expected Profit ($)"] = "${:,.0f}"
-#             if "Expected Profitability Ratio" in df_show.columns:
-#                 sty["Expected Profitability Ratio"] = "{:.1%}"
-#             st.dataframe(df_show.style.format(sty), use_container_width=True)
-
-#         with right_tbl:
-#             st.write("#### 📄 Top 10 — Non-Strike Zone")
-#             df_show = non_strike_top10[[c for c in cols_keep if c in non_strike_top10.columns]].rename(columns={
-#                 "Bind Propensity Score": "Bind Propensity",
-#                 profit_col: "Expected Profit ($)",
-#                 "Expected_Profitability_Ratio": "Expected Profitability Ratio"
-#             })
-#             sty = {"Bind Propensity": "{:.1%}"}
-#             if "Expected Profit ($)" in df_show.columns:
-#                 sty["Expected Profit ($)"] = "${:,.0f}"
-#             if "Expected Profitability Ratio" in df_show.columns:
-#                 sty["Expected Profitability Ratio"] = "{:.1%}"
-#             st.dataframe(df_show.style.format(sty), use_container_width=True)
-
-
 
 with tab2:
     st.header("Submissions Prioritization using Strike Zone")
@@ -3996,7 +3024,7 @@ with tab2:
         if "Expected Value Numeric" in strike_top10.columns:
             total_expected_value = float(strike_top10["Expected Value Numeric"].sum())
             st.metric("Total Expected Value (Top 10)", f"${total_expected_value:,.2f}")
-
+        
         st.download_button(
             "⬇️ Download CSV",
             data=top_show.to_csv(index=False).encode("utf-8"),
@@ -4004,6 +3032,7 @@ with tab2:
             mime="text/csv",
             key="download_top10"
         )
+        
 
         st.session_state["strike_top10_cached"] = strike_top10.index.tolist()
 
@@ -4479,25 +3508,7 @@ with tab3:
             for f in (fig_area, fig_donut, fig_broker_conv, fig_brokers):
                 f.update_layout(height=360)
 
-            # -------- 2×2 MATRIX LAYOUT --------
-            # r1c1, r1c2 = st.columns(2, gap="large")
-            # with r1c1:
-            #     st.write("#### Pipeline Over Time")
-            #     st.plotly_chart(fig_area, use_container_width=True)
-            # with r1c2:
-            #     st.write("#### Broker Share (Volume)")
-            #     st.plotly_chart(fig_donut, use_container_width=True)
-
-            # r2c1, r2c2 = st.columns(2, gap="large")
-            # with r2c1:
-            #     st.write("#### Broker Comparison (Submission→Quote vs Quote→Bind)")
-            #     st.plotly_chart(fig_broker_conv, use_container_width=True)
-
-            # with r2c2:
-            #     st.write("#### Submissions vs Predicted Wins by Broker")
-            #     st.plotly_chart(fig_brokers, use_container_width=True)
-            # --- 2×2 + 1 MATRIX LAYOUT (5 charts total) ---
-            # --- 2×2 + 1 MATRIX LAYOUT (5 charts total) ---
+            
             # -------- 2×2 MATRIX LAYOUT --------
             r1c1, r1c2 = st.columns(2, gap="large")
             with r1c1:
